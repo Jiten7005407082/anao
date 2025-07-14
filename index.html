@@ -1,25 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Quiz App</title>
-  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Voice Chat Bot</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div class="quiz-container">
-    <h1>Quiz App</h1>
-    <div id="quiz">
-      <div id="question">Question Text</div>
-      <div id="options">
-        <button class="option-btn" onclick="checkAnswer(0)"></button>
-        <button class="option-btn" onclick="checkAnswer(1)"></button>
-        <button class="option-btn" onclick="checkAnswer(2)"></button>
-        <button class="option-btn" onclick="checkAnswer(3)"></button>
-      </div>
-      <div id="result"></div>
-      <button id="next-btn" onclick="nextQuestion()">Next</button>
-      <button id="restart-btn" onclick="startQuiz()">Restart</button>
-    </div>
+  <div class="container">
+    <h1>Voice Chat Bot</h1>
+    <div id="chatBox"></div>
+    <button id="micBtn">🎤 Speak</button>
   </div>
   <script src="script.js"></script>
 </body>
