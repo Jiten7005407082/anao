@@ -1,17 +1,25 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Voice Chat Bot</title>
-  <link rel="stylesheet" href="style.css" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manipuri-English Voice Chatbot</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="container">
-    <h1>Voice Chat Bot</h1>
-    <div id="chatBox"></div>
-    <button id="micBtn">🎤 Speak</button>
-  </div>
-  <script src="script.js"></script>
+    <div class="chat-container">
+        <h1>Manipuri-English Chatbot</h1>
+        <div id="chatbox"></div>
+        <div class="input-area">
+            <input type="text" id="userInput" placeholder="Type your message...">
+            <button id="sendBtn">Send</button>
+            <button id="voiceBtn">🎤 Speak</button>
+            <select id="language">
+                <option value="en">English</option>
+                <option value="mni">Manipuri</option>
+            </select>
+        </div>
+    </div>
+    <script src="script.js"></script>
 </body>
 </html>
