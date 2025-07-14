@@ -1,25 +1,20 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manipuri-English Voice Chatbot</title>
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
-    <div class="chat-container">
-        <h1>Manipuri-English Chatbot</h1>
-        <div id="chatbox"></div>
-        <div class="input-area">
-            <input type="text" id="userInput" placeholder="Type your message...">
-            <button id="sendBtn">Send</button>
-            <button id="voiceBtn">🎤 Speak</button>
-            <select id="language">
-                <option value="en">English</option>
-                <option value="mni">Manipuri</option>
-            </select>
-        </div>
+<div class="chat-container">
+    <h1>Manipuri-English Chatbot</h1>
+    <div id="chatbox"></div>
+    <div class="input-area">
+        <input type="text" id="userInput" placeholder="Type your message...">
+        <button id="sendBtn">Send</button>
+        <button id="voiceBtn">🎤 Speak</button>
+        <select id="language">
+            <option value="en">English</option>
+            <option value="mni">Manipuri</option>
+        </select>
     </div>
-    <script src="script.js"></script>
-</body>
-</html>
+    <!-- Add these avatar elements -->
+    <div id="userAvatar" class="avatar" style="display:none;">
+        <img src="user.png" alt="User">
+    </div>
+    <div id="botAvatar" class="avatar talking" style="display:none;">
+        <img src="ton.jpeg" alt="Chatbot Ton">
+    </div>
+</div>
