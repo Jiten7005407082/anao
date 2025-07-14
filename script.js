@@ -1,84 +1,51 @@
-let questions = [];
-let currentQuestion = 0;
-let score = 0;
+const chatBox = document.getElementById("chatBox");
+const micBtn = document.getElementById("micBtn");
 
-const questionEl = document.getElementById("question");
-const optionsEl = document.getElementById("options");
-const resultEl = document.getElementById("result");
-const nextBtn = document.getElementById("next-btn");
-const restartBtn = document.getElementById("restart-btn");
+// Speech Recognition setup
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+const recognition = new SpeechRecognition();
+recognition.lang = "en-US";
+recognition.interimResults = false;
+recognition.maxAlternatives = 1;
 
-// ✅ Your live Google Sheet API link
-const GOOGLE_SHEET_API = "https://script.google.com/macros/s/AKfycbzrvneqHBMEwANEmi8tTrpkf8TtWSL2Z67tEskE87TUkL7eG00iV7mwu2eIVLACFzuU/exec";
+// On mic button click
+micBtn.addEventListener("click", () => {
+  recognition.start();
+  appendMessage("Bot", "Listening...");
+});
 
-async function fetchQuestions() {
-  try {
-    const res = await fetch(GOOGLE_SHEET_API);
-    questions = await res.json();
-    startQuiz();
-  } catch (error) {
-    questionEl.innerText = "Failed to load quiz questions.";
-    console.error("Error fetching questions:", error);
-  }
+// Handle speech result
+recognition.onresult = function (event) {
+  const userText = event.results[0][0].transcript;
+  appendMessage("You", userText);
+  botReply(userText);
+};
+
+// Generate bot reply (simple example or integrate GPT)
+function botReply(text) {
+  let reply = "Sorry, I didn't understand.";
+  text = text.toLowerCase();
+
+  if (text.includes("hello")) reply = "Hi there!";
+  else if (text.includes("your name")) reply = "I'm your voice assistant.";
+  else if (text.includes("how are you")) reply = "I'm just code, but I'm working well!";
+  else if (text.includes("bye")) reply = "Goodbye! Have a great day!";
+
+  appendMessage("Bot", reply);
+  speak(reply);
 }
 
-function startQuiz() {
-  currentQuestion = 0;
-  score = 0;
-  resultEl.innerText = "";
-  nextBtn.style.display = "none";
-  restartBtn.style.display = "none";
-  showQuestion();
+// Append messages to chat
+function appendMessage(sender, message) {
+  const msg = document.createElement("div");
+  msg.innerHTML = `<strong>${sender}:</strong> ${message}`;
+  chatBox.appendChild(msg);
+  chatBox.scrollTop = chatBox.scrollHeight;
 }
 
-function showQuestion() {
-  const q = questions[currentQuestion];
-  questionEl.innerText = q.question;
-  optionsEl.innerHTML = "";
-
-  q.options.forEach((opt, idx) => {
-    const btn = document.createElement("button");
-    btn.className = "option";
-    btn.innerText = opt;
-    btn.onclick = () => checkAnswer(idx);
-    optionsEl.appendChild(btn);
-  });
+// Speech Synthesis
+function speak(text) {
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.lang = "en-US";
+  speechSynthesis.speak(utterance);
 }
-
-function checkAnswer(selected) {
-  const q = questions[currentQuestion];
-  const buttons = document.querySelectorAll("button.option");
-  buttons.forEach(btn => btn.disabled = true);
-
-  if (selected === q.answer) {
-    score++;
-    buttons[selected].style.background = "#a2f3a2"; // green
-    resultEl.innerText = "✅ Correct!";
-  } else {
-    buttons[selected].style.background = "#f3a2a2"; // red
-    buttons[q.answer].style.background = "#a2f3a2"; // show correct
-    resultEl.innerText = "❌ Wrong!";
-  }
-
-  nextBtn.style.display = "inline-block";
-}
-
-function nextQuestion() {
-  currentQuestion++;
-  resultEl.innerText = "";
-  nextBtn.style.display = "none";
-
-  if (currentQuestion < questions.length) {
-    showQuestion();
-  } else {
-    showScore();
-  }
-}
-
-function showScore() {
-  questionEl.innerText = `🎉 You scored ${score} out of ${questions.length}`;
-  optionsEl.innerHTML = "";
-  restartBtn.style.display = "inline-block";
-}
-
-window.onload = fetchQuestions;
