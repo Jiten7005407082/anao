@@ -1,51 +1,122 @@
-const chatBox = document.getElementById("chatBox");
-const micBtn = document.getElementById("micBtn");
+// Google Sheets setup
+const scriptURL = 'YOUR_GOOGLE_APPS_SCRIPT_URL';
+let conversationHistory = [];
 
-// Speech Recognition setup
+// DOM elements
+const chatbox = document.getElementById('chatbox');
+const userInput = document.getElementById('userInput');
+const sendBtn = document.getElementById('sendBtn');
+const voiceBtn = document.getElementById('voiceBtn');
+const languageSelect = document.getElementById('language');
+
+// Speech recognition setup
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 const recognition = new SpeechRecognition();
-recognition.lang = "en-US";
 recognition.interimResults = false;
-recognition.maxAlternatives = 1;
 
-// On mic button click
-micBtn.addEventListener("click", () => {
-  recognition.start();
-  appendMessage("Bot", "Listening...");
+// Voice button click handler
+voiceBtn.addEventListener('click', () => {
+    const selectedLang = languageSelect.value;
+    recognition.lang = selectedLang === 'mni' ? 'en-IN' : 'en-US'; // English for both as Manipuri may not be supported
+    
+    recognition.start();
+    voiceBtn.textContent = "Listening...";
 });
 
-// Handle speech result
-recognition.onresult = function (event) {
-  const userText = event.results[0][0].transcript;
-  appendMessage("You", userText);
-  botReply(userText);
+// Speech recognition result
+recognition.onresult = (event) => {
+    const transcript = event.results[0][0].transcript;
+    userInput.value = transcript;
+    sendMessage();
+    voiceBtn.textContent = "🎤 Speak";
 };
 
-// Generate bot reply (simple example or integrate GPT)
-function botReply(text) {
-  let reply = "Sorry, I didn't understand.";
-  text = text.toLowerCase();
-
-  if (text.includes("hello")) reply = "Hi there!";
-  else if (text.includes("your name")) reply = "I'm your voice assistant.";
-  else if (text.includes("how are you")) reply = "I'm just code, but I'm working well!";
-  else if (text.includes("bye")) reply = "Goodbye! Have a great day!";
-
-  appendMessage("Bot", reply);
-  speak(reply);
+// Send message function
+function sendMessage() {
+    const message = userInput.value.trim();
+    if (message === '') return;
+    
+    const selectedLang = languageSelect.value;
+    const isManipuri = selectedLang === 'mni';
+    
+    // Display user message
+    displayMessage(message, 'user');
+    
+    // Process response (simple example)
+    let response;
+    if (isManipuri) {
+        response = getManipuriResponse(message);
+    } else {
+        response = getEnglishResponse(message);
+    }
+    
+    // Display bot response after delay
+    setTimeout(() => {
+        displayMessage(response, 'bot');
+        saveToGoogleSheets(message, response, selectedLang);
+    }, 500);
+    
+    userInput.value = '';
 }
 
-// Append messages to chat
-function appendMessage(sender, message) {
-  const msg = document.createElement("div");
-  msg.innerHTML = `<strong>${sender}:</strong> ${message}`;
-  chatBox.appendChild(msg);
-  chatBox.scrollTop = chatBox.scrollHeight;
+// Simple response logic (you'll need to expand this)
+function getEnglishResponse(message) {
+    message = message.toLowerCase();
+    if (message.includes('hello') || message.includes('hi')) {
+        return "Hello! How can I help you today?";
+    } else if (message.includes('how are you')) {
+        return "I'm doing well, thank you!";
+    } else {
+        return "I understand you said: " + message;
+    }
 }
 
-// Speech Synthesis
-function speak(text) {
-  const utterance = new SpeechSynthesisUtterance(text);
-  utterance.lang = "en-US";
-  speechSynthesis.speak(utterance);
+function getManipuriResponse(message) {
+    // Add your Manipuri responses here
+    // This is a simple example - you'll need proper translations
+    message = message.toLowerCase();
+    if (message.includes('hello') || message.includes('hi') || message.includes('khurumjari')) {
+        return "Khurumjari! Einai thokning amukta tambiram? (Hello! How can I help you?)";
+    } else if (message.includes('how are you') || message.includes('nang kaygi thouroi')) {
+        return "Nungshi thouroi, yengbira! (I'm fine, thank you!)";
+    } else {
+        return "Einai khangdana: " + message;
+    }
 }
+
+// Display message in chatbox
+function displayMessage(message, sender) {
+    const messageDiv = document.createElement('div');
+    messageDiv.classList.add(sender);
+    messageDiv.textContent = message;
+    chatbox.appendChild(messageDiv);
+    chatbox.scrollTop = chatbox.scrollHeight;
+}
+
+// Save to Google Sheets
+function saveToGoogleSheets(userMessage, botResponse, language) {
+    const timestamp = new Date().toISOString();
+    conversationHistory.push({
+        timestamp,
+        language,
+        userMessage,
+        botResponse
+    });
+    
+    // Send to Google Sheets via Apps Script
+    fetch(scriptURL, {
+        method: 'POST',
+        body: JSON.stringify(conversationHistory),
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => console.log('Success:', response))
+    .catch(error => console.error('Error:', error));
+}
+
+// Event listeners
+sendBtn.addEventListener('click', sendMessage);
+userInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') sendMessage();
+});
