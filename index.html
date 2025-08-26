@@ -1,20 +1,90 @@
-<div class="chat-container">
-    <h1>Manipuri-English Chatbot</h1>
-    <div id="chatbox"></div>
-    <div class="input-area">
-        <input type="text" id="userInput" placeholder="Type your message...">
-        <button id="sendBtn">Send</button>
-        <button id="voiceBtn">🎤 Speak</button>
-        <select id="language">
-            <option value="en">English</option>
-            <option value="mni">Manipuri</option>
-        </select>
-    </div>
-    <!-- Add these avatar elements -->
-    <div id="userAvatar" class="avatar" style="display:none;">
-        <img src="user.png" alt="User">
-    </div>
-    <div id="botAvatar" class="avatar talking" style="display:none;">
-        <img src="ton.jpeg" alt="Chatbot Ton">
-    </div>
-</div>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Math Quiz Chatbot</title>
+  <!-- React & Babel via CDN -->
+  <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; background:#f9fafb; margin:0; padding:0; }
+    .container { max-width: 800px; margin: 0 auto; padding: 1rem; }
+    .card { background:white; border-radius:1rem; padding:1rem; box-shadow:0 4px 12px rgba(0,0,0,0.1); }
+    .bot { background:#fff; border:1px solid #ddd; border-radius:1rem 1rem 1rem 0; padding:.5rem .75rem; margin:.25rem 0; }
+    .user { background:black; color:white; border-radius:1rem 1rem 0 1rem; padding:.5rem .75rem; margin:.25rem 0; text-align:right; }
+    button { border:none; border-radius:.5rem; padding:.5rem .75rem; cursor:pointer; }
+    button.option { width:100%; text-align:left; border:1px solid #ccc; margin:.25rem 0; background:white; }
+    button.option:hover { background:#f3f3f3; }
+    .header { display:flex; justify-content:space-between; align-items:center; margin-bottom:.5rem; }
+  </style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel">
+// ---------------- Utility
+function makeLCG(seedStr = "MATH250") {
+  let seed = 0; for (let i=0;i<seedStr.length;i++) seed=(seed*31+seedStr.charCodeAt(i))>>>0;
+  let state = seed || 123456789;
+  return () => { state=(1664525*state+1013904223)>>>0; return state/0xffffffff; };
+}
+function randInt(rand,min,max){ return Math.floor(rand()*(max-min+1))+min; }
+function round2(x){ return Math.round(x*100)/100; }
+function shuffle(arr,rand){ let a=[...arr]; for(let i=a.length-1;i>0;i--){ let j=Math.floor(rand()*(i+1)); [a[i],a[j]]=[a[j],a[i]];} return a; }
+function mkNumericOptions(correct,variants,rand){ const set=new Set([Number(correct),...variants.map(Number)]); let arr=Array.from(set).slice(0,4); while(arr.length<4) arr.push(Number(correct)+arr.length); return shuffle(arr,rand); }
+function fmtSign(n){ return n>=0?`+ ${n}`:`- ${Math.abs(n)}`; }
+
+// ---------------- Question generators
+function genLinearQ(rand){ let a=randInt(rand,1,8),b=randInt(rand,1,8),c=randInt(rand,-15,15),d=randInt(rand,1,8),e=randInt(rand,1,8),f=randInt(rand,-15,15); if(a*e===b*d) e++; let det=a*e-b*d; let x=(c*e-b*f)/det,y=(a*f-c*d)/det; let correct=`(${round2(x)}, ${round2(y)})`; let opts=shuffle([correct,`(${round2(x+1)}, ${round2(y)})`,`(${round2(x)}, ${round2(y+1)})`,`(${round2(x-1)}, ${round2(y-1)})`],rand); return {topic:"Linear Equations",question:`Solve: ${a}x+${b}y=${c}, ${d}x+${e}y=${f}`,options:opts,answerIndex:opts.indexOf(correct)}; }
+function genQuadraticQ(rand){ let r1=randInt(rand,-8,8),r2=randInt(rand,-8,8); if(r1===r2)r2++; let a=randInt(rand,1,3),b=-a*(r1+r2),c=a*r1*r2; let correct=r1<=r2?`${r1}, ${r2}`:`${r2}, ${r1}`; let opts=shuffle([correct,`${r1+1}, ${r2}`,`${r1}, ${r2+1}`,`${-r1}, ${-r2}`],rand); return {topic:"Quadratic Equations",question:`Find roots: ${a}x² ${fmtSign(b)}x ${fmtSign(c)}=0`,options:opts,answerIndex:opts.indexOf(correct)}; }
+function genAPQ(rand){ let a1=randInt(rand,-15,15),d=randInt(rand,-6,10),n=randInt(rand,5,20),type=randInt(rand,1,3); if(type===1){ let an=a1+(n-1)*d; let correct=`${an}`; let opts=mkNumericOptions(an,[an+d,an-d,an+2*d],rand).map(String); return {topic:"Arithmetic Progression",question:`In AP with a₁=${a1}, d=${d}, find aₙ for n=${n}`,options:opts,answerIndex:opts.indexOf(correct)};} else if(type===2){ let Sn=(n/2)*(2*a1+(n-1)*d); let correct=`${Sn}`; let opts=mkNumericOptions(Sn,[Sn+d*n,Sn-d*n,Sn+2*d*n],rand).map(String); return {topic:"Arithmetic Progression",question:`AP a₁=${a1}, d=${d}, find sum of first ${n} terms`,options:opts,answerIndex:opts.indexOf(correct)};} else { let k=randInt(rand,4,12),ak=a1+(k-1)*d,m=k+randInt(rand,2,6),am=a1+(m-1)*d,dBack=(am-ak)/(m-k); let correct=`${dBack}`; let opts=mkNumericOptions(dBack,[dBack+1,dBack-1,dBack+2],rand).map(String); return {topic:"Arithmetic Progression",question:`Given a₁=${a1}, a_${k}=${ak}, a_${m}=${am}, find d`,options:opts,answerIndex:opts.indexOf(correct)};} }
+function trigExact(f,ang){ const rt2=\"√2/2\",rt3=\"√3/2\"; const vals={sin:{0:\"0\",30:\"1/2\",45:rt2,60:rt3,90:\"1\"},cos:{0:\"1\",30:rt3,45:rt2,60:\"1/2\",90:\"0\"},tan:{0:\"0\",30:\"1/√3\",45:\"1\",60:\"√3\",90:\"undefined\"}}; return vals[f][ang]; }
+function genTrigQ(rand){ let mode=randInt(rand,1,3); if(mode===1){ let angs=[0,30,45,60,90],funcs=[\"sin\",\"cos\",\"tan\"],a=angs[randInt(rand,0,angs.length-1)],f=funcs[randInt(rand,0,2)],val=trigExact(f,a),correct=val; let opts=shuffle([val,\"1/2\",\"√3/2\",\"√2/2\"],rand); return {topic:\"Trigonometry\",question:`Evaluate ${f} ${a}°`,options:opts,answerIndex:opts.indexOf(correct)};} else if(mode===2){ let opp=randInt(rand,3,12),adj=randInt(rand,4,13),hyp=round2(Math.sqrt(opp*opp+adj*adj)),f=[\"sin\",\"cos\",\"tan\"][randInt(rand,0,2)],correct; if(f===\"sin\")correct=`${round2(opp/hyp)}`; if(f===\"cos\")correct=`${round2(adj/hyp)}`; if(f===\"tan\")correct=`${round2(opp/adj)}`; let opts=shuffle([correct,`${round2(Number(correct)+.1)}`,`${round2(Number(correct)-.1)}`,`${round2(Number(correct)+.2)}`],rand); return {topic:\"Trigonometry\",question:`Right triangle opp=${opp}, adj=${adj}, find ${f}θ`,options:opts,answerIndex:opts.indexOf(correct)};} else { let angle=[30,45,60][randInt(rand,0,2)],left=`sin²${angle}°+cos²${angle}°`; return {topic:\"Trigonometry\",question:`Evaluate ${left}`,options:[\"1\",\"0\",\"2\",\"√3\"],answerIndex:0}; } }
+function genMensurationQ(rand){ let pi=3.14,mode=randInt(rand,1,3); if(mode===1){ let r=randInt(rand,2,15),area=round2(pi*r*r),correct=`${area}`,opts=mkNumericOptions(area,[area+r,area-r,area+2*r],rand).map(String); return {topic:\"Mensuration\",question:`Area of circle r=${r} (π=3.14)`,options:opts,answerIndex:opts.indexOf(correct)};} else if(mode===2){ let b=randInt(rand,4,20),h=randInt(rand,3,18),A=0.5*b*h,correct=`${A}`,opts=mkNumericOptions(A,[A+b,A-h,A+5],rand).map(String); return {topic:\"Mensuration\",question:`Area of triangle b=${b}, h=${h}`,options:opts,answerIndex:opts.indexOf(correct)};} else { let r=randInt(rand,2,10),h=randInt(rand,3,15),V=round2(pi*r*r*h),correct=`${V}`,opts=mkNumericOptions(V,[V+r,V-h,V+2],rand).map(String); return {topic:\"Mensuration\",question:`Volume of cylinder r=${r}, h=${h}`,options:opts,answerIndex:opts.indexOf(correct)};} }
+
+// ---------------- Build bank
+function buildQuestionBank(){ let rand=makeLCG(\"MATH250_SEED\"),bank=[]; for(let i=0;i<50;i++)bank.push(genLinearQ(rand)); for(let i=0;i<50;i++)bank.push(genQuadraticQ(rand)); for(let i=0;i<50;i++)bank.push(genAPQ(rand)); for(let i=0;i<50;i++)bank.push(genTrigQ(rand)); for(let i=0;i<50;i++)bank.push(genMensurationQ(rand)); return bank.map((q,i)=>({...q,id:i+1})); }
+
+// ---------------- React App
+function App(){
+  const allQ=React.useMemo(buildQuestionBank,[]);
+  const [mode,setMode]=React.useState(\"menu\");
+  const [queue,setQueue]=React.useState([]),[idx,setIdx]=React.useState(0),[score,setScore]=React.useState(0);
+  const [topic,setTopic]=React.useState(\"All\"),[messages,setMessages]=React.useState([]),[selected,setSelected]=React.useState(null);
+  const endRef=React.useRef(null);
+  React.useEffect(()=>{ endRef.current?.scrollIntoView({behavior:\"smooth\"}); },[messages]);
+  const topics=[\"All\",\"Linear Equations\",\"Quadratic Equations\",\"Arithmetic Progression\",\"Trigonometry\",\"Mensuration\"];
+
+  function startQuiz(){ let filtered=topic===\"All\"?allQ:allQ.filter(q=>q.topic===topic); let rand=makeLCG(\"SESSION\"); let shuffled=shuffle(filtered,rand); let first=shuffled[0]; setQueue(shuffled); setIdx(0); setScore(0); setSelected(null); setMode(\"quiz\"); setMessages([{role:\"bot\",text:`Hi! ${shuffled.length} questions. Topic: ${topic}`},{role:\"bot\",text:`Q${first.id}. ${first.question}`,q:first}]); }
+  function pickOption(oi){ if(mode!==\"quiz\")return; let q=queue[idx],correct=oi===q.answerIndex; setSelected(oi); if(correct) setScore(s=>s+1); setMessages(m=>[...m,{role:\"user\",text:q.options[oi]},{role:\"bot\",text:correct?\"✅ Correct!\":`❌ Wrong. Ans: ${q.options[q.answerIndex]}`}]); }
+  function nextQ(){ let n=idx+1; if(n>=queue.length){ setMode(\"done\"); setMessages(m=>[...m,{role:\"bot\",text:`🎉 Done! Score ${score}/${queue.length}`}]); return; } setIdx(n); setSelected(null); let q=queue[n]; setMessages(m=>[...m,{role:\"bot\",text:`Q${q.id}. ${q.question}`,q}]); }
+  function reset(){ setMode(\"menu\"); setMessages([]); }
+
+  return <div className=\"container\"><div className=\"card\">
+    <div className=\"header\"><h2>📚 Math Quiz Chatbot</h2><span>{allQ.length} Qs</span></div>
+    {mode===\"menu\" && <div>
+      <p>Pick topic:</p>
+      <select value={topic} onChange={e=>setTopic(e.target.value)}>{topics.map(t=><option key={t}>{t}</option>)}</select>
+      <button style={{marginLeft:\"1rem\"}} onClick={startQuiz}>▶️ Start</button>
+    </div>}
+    {mode!==\"menu\" && <div style={{height:\"60vh\",display:\"flex\",flexDirection:\"column\"}}>
+      <div className=\"header\"><span>Topic: {topic}</span><span>Score: {score}/{queue.length}</span></div>
+      <div style={{flex:1,overflowY:\"auto\",background:\"#f1f1f1\",padding:\"0.5rem\",borderRadius:\"0.5rem\"}}>
+        {messages.map((m,i)=><div key={i} className={m.role===\"user\"?\"user\":\"bot\"}>{m.text}{m.q && <div>{m.q.options.map((opt,oi)=><button key={oi} className=\"option\" disabled={selected!==null} onClick={()=>pickOption(oi)}>{String.fromCharCode(65+oi)}. {opt}</button>)}</div>}</div>)}
+        <div ref={endRef}></div>
+      </div>
+      <div style={{marginTop:\"0.5rem\"}}>
+        {mode===\"quiz\" && <button onClick={nextQ}>Next ▶️</button>}
+        {mode===\"done\" && <button onClick={reset}>Restart 🔁</button>}
+        <button style={{marginLeft:\"1rem\"}} onClick={reset}>Back to menu</button>
+      </div>
+    </div>}
+  </div></div>;
+}
+
+ReactDOM.createRoot(document.getElementById(\"root\")).render(<App/>);
+</script>
+</body>
+</html>
