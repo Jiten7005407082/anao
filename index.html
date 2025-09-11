@@ -11,6 +11,7 @@
     body { font-family: Arial, sans-serif; margin: 20px; }
     .section { margin-bottom: 15px; }
     #bookingsList div { border: 1px solid #ccc; padding: 8px; margin: 5px 0; }
+    .geocoder { max-width: 400px; }
   </style>
 </head>
 <body>
@@ -22,13 +23,13 @@
   </div>
 
   <div class="section">
-    <label>Pickup Location:</label>
-    <div id="pickupBox"></div>
+    <label>Pickup Location:</label><br>
+    <input type="text" id="pickupInput" placeholder="Search pickup..." />
   </div>
 
   <div class="section">
-    <label>Drop Location:</label>
-    <div id="dropBox"></div>
+    <label>Drop Location:</label><br>
+    <input type="text" id="dropInput" placeholder="Search drop..." />
   </div>
 
   <div class="section">
@@ -44,23 +45,26 @@
   <div id="bookingsList"></div>
 
 <script>
-mapboxgl.accessToken = "YOUR_MAPBOX_ACCESS_TOKEN"; // replace with your Mapbox key
+mapboxgl.accessToken = "YOUR_MAPBOX_ACCESS_TOKEN"; // replace with your key
 
 let pickupCoord=null, dropCoord=null, pickupName="", dropName="";
 
-const pickupGeocoder = new MapboxGeocoder({ accessToken: mapboxgl.accessToken, placeholder: "Pickup location" });
-pickupGeocoder.addTo("#pickupBox");
-pickupGeocoder.on("result", e => {
-  pickupCoord = e.result.geometry.coordinates;
-  pickupName = e.result.place_name;
-});
+function attachGeocoder(inputId, callback){
+  const geocoder=new MapboxGeocoder({
+    accessToken: mapboxgl.accessToken,
+    placeholder:"Search location",
+    mapboxgl: mapboxgl,
+    marker:false
+  });
+  geocoder.addTo("#"+inputId);
+  geocoder.on("result",e=>{
+    callback(e.result.geometry.coordinates, e.result.place_name);
+  });
+  return geocoder;
+}
 
-const dropGeocoder = new MapboxGeocoder({ accessToken: mapboxgl.accessToken, placeholder: "Drop location" });
-dropGeocoder.addTo("#dropBox");
-dropGeocoder.on("result", e => {
-  dropCoord = e.result.geometry.coordinates;
-  dropName = e.result.place_name;
-});
+attachGeocoder("pickupInput", (coord,name)=>{ pickupCoord=coord; pickupName=name; });
+attachGeocoder("dropInput", (coord,name)=>{ dropCoord=coord; dropName=name; });
 
 const baseFare=15, perKm=8;
 
@@ -68,8 +72,8 @@ async function getRouteDistance(pickup,drop){
   const url=`https://api.mapbox.com/directions/v5/mapbox/driving/${pickup[0]},${pickup[1]};${drop[0]},${drop[1]}?geometries=geojson&access_token=${mapboxgl.accessToken}`;
   const res=await fetch(url);
   const data=await res.json();
-  if(!data.routes || !data.routes.length) return null;
-  return data.routes[0].distance/1000; // meters→km
+  if(!data.routes||!data.routes.length) return null;
+  return data.routes[0].distance/1000;
 }
 
 document.getElementById("estimate").onclick=async()=>{
@@ -84,8 +88,8 @@ document.getElementById("estimate").onclick=async()=>{
 document.getElementById("confirm").onclick=()=>{
   const phone=document.getElementById("phone").value.trim();
   if(!phone){ alert("Enter phone number"); return; }
-  if(!pickupCoord||!dropCoord||!window.currentEstimate){ alert("Select pickup & drop and estimate fare"); return; }
-  
+  if(!pickupCoord||!dropCoord||!window.currentEstimate){ alert("Estimate fare first"); return; }
+
   const now=new Date();
   const datetime=now.toLocaleString();
 
@@ -120,7 +124,7 @@ function loadBookings(){
       const btn=document.createElement("button");
       btn.textContent="End Trip";
       btn.onclick=()=>{
-        arr.splice(i,1); // delete booking after trip ends
+        arr.splice(i,1);
         localStorage.setItem("erick_bookings",JSON.stringify(arr));
         loadBookings();
       };
