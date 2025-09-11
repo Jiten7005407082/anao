@@ -1,48 +1,409 @@
-<!doctype html>
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <title>Mini Jugnoo - Demo</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <style>
-    body{font-family:Arial, sans-serif;margin:0;padding:0}
-    .top{padding:12px;background:#0b74de;color:#fff}
-    .wrap{display:flex;gap:12px;padding:12px}
-    .col{flex:1;min-width:260px}
-    #map{height:60vh}
-    input, button {padding:8px;margin:6px 0;width:100%}
-    .panel{padding:8px}
-    .btn-primary{background:#0b74de;color:#fff;border:none;padding:10px;cursor:pointer}
-    .status-box{border:1px solid #ddd;padding:8px;margin-top:8px}
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Friend Locator</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .panel {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        header {
+            grid-column: 1 / -1;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        h1, h2, h3 {
+            margin-top: 0;
+            color: #2c3e50;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        input, button {
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 16px;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.2s;
+        }
+        button:hover { background-color: #2980b9; }
+        button:disabled {
+            background-color: #95a5a6;
+            cursor: not-allowed;
+        }
+        #shareBtn { background-color: #2ecc71; }
+        #shareBtn:hover { background-color: #27ae60; }
+        #stopBtn { background-color: #e74c3c; }
+        #stopBtn:hover { background-color: #c0392b; }
+
+        #friendsList {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        #friendsList li {
+            padding: 15px;
+            margin-bottom: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #3498db;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .friend-info { flex-grow: 1; }
+        .friend-name { 
+            font-weight: bold; 
+            display: block;
+            margin-bottom: 4px;
+        }
+        .friend-phone { 
+            color: #7f8c8d; 
+            font-size: 0.9em;
+        }
+        .call-btn {
+            padding: 8px 12px;
+            background-color: #2ecc71;
+            text-decoration: none;
+            color: white;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .call-btn:hover { background-color: #27ae60; }
+
+        #map {
+            height: 600px;
+            width: 100%;
+            border-radius: 10px;
+        }
+        #status {
+            padding: 10px;
+            background: #fff3cd;
+            border-radius: 6px;
+            margin: 15px 0;
+            text-align: center;
+        }
+        .group-code {
+            background: #e8f4fc;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+    </style>
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <!-- Leaflet Awesome Markers -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet-awesome-markers/2.0.2/leaflet.awesome-markers.min.css"/>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
-  <div class="top"><strong>Mini Jugnoo (demo)</strong></div>
+    <header>
+        <h1>📱 Live Friend Locator</h1>
+        <p>See your friends on the map and call them with one click</p>
+    </header>
 
-  <div class="wrap">
-    <div class="col panel">
-      <label>Phone</label>
-      <input id="phone" placeholder="Enter phone number" />
-      <label>Pickup</label>
-      <input id="pickup" placeholder="Type pickup address" />
-      <label>Drop</label>
-      <input id="drop" placeholder="Type drop address" />
-      <button id="useLocation" class="btn-primary">Use current location as Pickup</button>
-      <button id="searchRoute" class="btn-primary">Estimate Fare & Show Route</button>
-      <button id="bookRide" class="btn-primary" style="display:none">Book Ride</button>
+    <div class="container">
+        <!-- Left Panel: Forms and List -->
+        <div class="panel">
+            <div class="group-code">
+                <h3>Group Code</h3>
+                <p><strong id="groupCode">FRIEND_SQUAD</strong></p>
+                <p>Share this code with your friends!</p>
+            </div>
 
-      <div id="estimateBox" class="status-box">No estimate</div>
-      <div id="activeBox" class="status-box" style="display:none"></div>
+            <div>
+                <h3>Add a Friend</h3>
+                <form id="friendForm">
+                    <input type="text" id="friendName" placeholder="Friend's Name" required>
+                    <input type="tel" id="friendPhone" placeholder="Phone Number (e.g., +919876543210)" required>
+                    <button type="submit">Add to List</button>
+                </form>
+            </div>
+
+            <div>
+                <h3>Your Location</h3>
+                <input type="text" id="userName" placeholder="Your Name">
+                <button id="shareBtn">Share My Location</button>
+                <button id="stopBtn" disabled>Stop Sharing</button>
+                <div id="status">Status: Ready to share</div>
+            </div>
+
+            <div>
+                <h3>Your Friends</h3>
+                <ul id="friendsList"></ul>
+            </div>
+        </div>
+
+        <!-- Right Panel: Map -->
+        <div class="panel">
+            <div id="map"></div>
+        </div>
     </div>
 
-    <div class="col">
-      <div id="map"></div>
-    </div>
-  </div>
+    <!-- JavaScript Libraries -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-awesome-markers/2.0.2/leaflet.awesome-markers.min.js"></script>
 
-  <script src="/socket.io/socket.io.js"></script>
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="client.js"></script>
+    <script>
+        // !!! REPLACE WITH YOUR FIREBASE CONFIG !!!
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT.firebaseapp.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT.appspot.com",
+            messagingSenderId: "123456789",
+            appId: "YOUR_APP_ID"
+        };
+
+        // Initialize Firebase
+        const app = firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // App State
+        let map;
+        let userMarker;
+        const friendMarkers = {};
+        let watchId = null;
+        const myFriends = {}; // Stores friend data: { name, phone }
+        const groupCode = "FRIEND_SQUAD"; // Fixed for this demo
+
+        // Initialize Map
+        function initMap() {
+            map = L.map('map').setView([20.5937, 78.9629], 5);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap contributors'
+            }).addTo(map);
+        }
+        initMap();
+
+        // --- Form Handler: Add Friend to List ---
+        document.getElementById('friendForm').addEventListener('submit', function(e) {
+            e.preventDefault(); // Prevent page reload
+
+            const name = document.getElementById('friendName').value.trim();
+            const phone = document.getElementById('friendPhone').value.trim();
+
+            if (name && phone) {
+                // Add to local list
+                myFriends[name] = { phone: phone };
+                updateFriendsList();
+                // Clear the form
+                document.getElementById('friendForm').reset();
+            }
+        });
+
+        // Update the Friends List in the UI
+        function updateFriendsList() {
+            const listElement = document.getElementById('friendsList');
+            listElement.innerHTML = ''; // Clear the list
+
+            for (const [name, data] of Object.entries(myFriends)) {
+                const li = document.createElement('li');
+                
+                const friendInfo = document.createElement('div');
+                friendInfo.className = 'friend-info';
+                friendInfo.innerHTML = `
+                    <span class="friend-name">${name}</span>
+                    <span class="friend-phone">${data.phone}</span>
+                `;
+
+                const callLink = document.createElement('a');
+                callLink.href = `tel:${data.phone}`;
+                callLink.className = 'call-btn';
+                callLink.textContent = 'Call';
+                callLink.title = `Call ${data.phone}`;
+
+                li.appendChild(friendInfo);
+                li.appendChild(callLink);
+                listElement.appendChild(li);
+            }
+        }
+
+        // --- Location Sharing Functions ---
+        document.getElementById('shareBtn').addEventListener('click', startSharing);
+        document.getElementById('stopBtn').addEventListener('click', stopSharing);
+
+        function startSharing() {
+            const userName = document.getElementById('userName').value.trim();
+            if (!userName) {
+                alert("Please enter your name first.");
+                return;
+            }
+            if (!navigator.geolocation) {
+                alert("Geolocation is not supported by your browser.");
+                return;
+            }
+
+            updateStatus("Getting location...");
+            toggleSharingButtons(true);
+
+            // Get initial position and start watching
+            navigator.geolocation.getCurrentPosition(success, error, { enableHighAccuracy: true });
+            watchId = navigator.geolocation.watchPosition(success, error, {
+                enableHighAccuracy: true,
+                maximumAge: 30000,
+                timeout: 27000
+            });
+        }
+
+        function success(position) {
+            const userName = document.getElementById('userName').value.trim();
+            const { latitude, longitude, accuracy } = position.coords;
+
+            updateStatus(`Sharing live location (Accuracy: ${Math.round(accuracy)}m)`);
+
+            // Update our own marker on the map
+            updateOwnMarker(userName, latitude, longitude);
+
+            // Send location to Firebase (so friends can see it)
+            const locationRef = db.collection('groups').doc(groupCode).collection('locations').doc(userName);
+            locationRef.set({
+                lat: latitude,
+                lng: longitude,
+                accuracy: accuracy,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            }).catch(err => console.error("Error writing location: ", err));
+        }
+
+        function updateOwnMarker(name, lat, lng) {
+            if (!userMarker) {
+                // Create a new marker with a custom icon (blue)
+                userMarker = L.AwesomeMarkers.icon({
+                    icon: 'user',
+                    markerColor: 'blue',
+                    prefix: 'fa'
+                });
+                userMarker = L.marker([lat, lng], {icon: userMarker}).addTo(map)
+                    .bindPopup(`<b>You (${name})</b><br>This is your location.`).openPopup();
+            } else {
+                userMarker.setLatLng([lat, lng]);
+            }
+            map.setView([lat, lng], 16);
+        }
+
+        function error(err) {
+            console.error('Geolocation error:', err);
+            updateStatus('Error getting location. Please check permissions.');
+            stopSharing();
+        }
+
+        function stopSharing() {
+            const userName = document.getElementById('userName').value.trim();
+            if (watchId) navigator.geolocation.clearWatch(watchId);
+            if (userMarker) map.removeLayer(userMarker);
+            userMarker = null;
+            
+            // Remove our data from Firebase
+            const locationRef = db.collection('groups').doc(groupCode).collection('locations').doc(userName);
+            locationRef.delete().catch(err => console.error("Error removing location: ", err));
+
+            updateStatus("Ready to share");
+            toggleSharingButtons(false);
+        }
+
+        function toggleSharingButtons(isSharing) {
+            document.getElementById('shareBtn').disabled = isSharing;
+            document.getElementById('stopBtn').disabled = !isSharing;
+        }
+
+        function updateStatus(message) {
+            document.getElementById('status').textContent = `Status: ${message}`;
+        }
+
+        // --- Firebase Real-Time Listener for Friends' Locations ---
+        function setupRealTimeListener() {
+            const locationsRef = db.collection('groups').doc(groupCode).collection('locations');
+
+            locationsRef.onSnapshot((snapshot) => {
+                snapshot.docChanges().forEach((change) => {
+                    const friendName = change.doc.id;
+                    const friendData = change.doc.data();
+
+                    // Don't show ourselves on the map from Firebase
+                    const myName = document.getElementById('userName').value.trim();
+                    if (friendName === myName) return;
+
+                    if (change.type === "added" || change.type === "modified") {
+                        updateFriendOnMap(friendName, friendData);
+                    }
+                    if (change.type === "removed") {
+                        removeFriendFromMap(friendName);
+                    }
+                });
+            });
+        }
+        // Start listening for friend updates
+        setupRealTimeListener();
+
+        // Function to update a friend's marker on the map
+        function updateFriendOnMap(name, data) {
+            const latLng = [data.lat, data.lng];
+            const phone = myFriends[name]?.phone || 'Number not saved'; // Get phone from our list
+
+            if (friendMarkers[name]) {
+                // Update existing marker
+                friendMarkers[name].setLatLng(latLng);
+                friendMarkers[name].setPopupContent(createPopupContent(name, phone));
+            } else {
+                // Create new marker with a green icon
+                const friendIcon = L.AwesomeMarkers.icon({
+                    icon: 'user',
+                    markerColor: 'green',
+                    prefix: 'fa'
+                });
+                friendMarkers[name] = L.marker(latLng, {icon: friendIcon})
+                    .addTo(map)
+                    .bindPopup(createPopupContent(name, phone));
+            }
+        }
+
+        function createPopupContent(name, phone) {
+            // Creates the HTML content for the popup, including a call link
+            return `
+                <b>${name}</b><br>
+                📞 <a href="tel:${phone}" style="color: #2ecc71; text-decoration: none;">
+                    <strong>${phone}</strong>
+                </a><br>
+                <em>Last updated: Just now</em>
+            `;
+        }
+
+        function removeFriendFromMap(name) {
+            if (friendMarkers[name]) {
+                map.removeLayer(friendMarkers[name]);
+                delete friendMarkers[name];
+            }
+        }
+    </script>
 </body>
 </html>
