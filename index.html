@@ -1,129 +1,48 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html>
 <head>
-  <meta charset="UTF-8">
-  <title>Mini Jugnoo - E-Rickshaw Booking</title>
-  <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet" />
-  <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
-  <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v5.0.1/mapbox-gl-geocoder.min.js"></script>
-  <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v5.0.1/mapbox-gl-geocoder.css" />
+  <meta charset="utf-8" />
+  <title>Mini Jugnoo - Demo</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <style>
-    body { font-family: Arial, sans-serif; margin: 20px; }
-    .section { margin-bottom: 15px; }
-    #activeTrip { border: 1px solid #ccc; padding: 10px; margin-top: 15px; display: none; }
-    .geocoder { max-width: 400px; margin: 5px 0; }
+    body{font-family:Arial, sans-serif;margin:0;padding:0}
+    .top{padding:12px;background:#0b74de;color:#fff}
+    .wrap{display:flex;gap:12px;padding:12px}
+    .col{flex:1;min-width:260px}
+    #map{height:60vh}
+    input, button {padding:8px;margin:6px 0;width:100%}
+    .panel{padding:8px}
+    .btn-primary{background:#0b74de;color:#fff;border:none;padding:10px;cursor:pointer}
+    .status-box{border:1px solid #ddd;padding:8px;margin-top:8px}
   </style>
 </head>
 <body>
-  <h2>🚖 Mini Jugnoo - E-Rickshaw Booking</h2>
+  <div class="top"><strong>Mini Jugnoo (demo)</strong></div>
 
-  <div id="bookingForm">
-    <div class="section">
-      <label>Phone Number:</label><br>
-      <input type="tel" id="phone" placeholder="Enter phone number" />
+  <div class="wrap">
+    <div class="col panel">
+      <label>Phone</label>
+      <input id="phone" placeholder="Enter phone number" />
+      <label>Pickup</label>
+      <input id="pickup" placeholder="Type pickup address" />
+      <label>Drop</label>
+      <input id="drop" placeholder="Type drop address" />
+      <button id="useLocation" class="btn-primary">Use current location as Pickup</button>
+      <button id="searchRoute" class="btn-primary">Estimate Fare & Show Route</button>
+      <button id="bookRide" class="btn-primary" style="display:none">Book Ride</button>
+
+      <div id="estimateBox" class="status-box">No estimate</div>
+      <div id="activeBox" class="status-box" style="display:none"></div>
     </div>
 
-    <div class="section">
-      <label>Pickup Location:</label>
-      <div id="pickupBox" class="geocoder"></div>
-    </div>
-
-    <div class="section">
-      <label>Drop Location:</label>
-      <div id="dropBox" class="geocoder"></div>
-    </div>
-
-    <div class="section">
-      <button id="estimate">Estimate Fare</button>
-      <div id="estimateBox"></div>
-    </div>
-
-    <div class="section">
-      <button id="confirm">Confirm Booking</button>
+    <div class="col">
+      <div id="map"></div>
     </div>
   </div>
 
-  <div id="activeTrip">
-    <h3>🚕 Active Trip</h3>
-    <div id="tripDetails"></div>
-    <button id="endTrip">End Trip</button>
-  </div>
-
-<script>
-mapboxgl.accessToken = "YOUR_MAPBOX_ACCESS_TOKEN"; // replace with your Mapbox key
-
-let pickupCoord=null, dropCoord=null, pickupName="", dropName="", currentEstimate=null;
-
-// Attach Mapbox Geocoder widgets
-const pickupGeocoder = new MapboxGeocoder({ accessToken: mapboxgl.accessToken, placeholder:"Search pickup", marker:false });
-pickupGeocoder.addTo("#pickupBox");
-pickupGeocoder.on("result", e=>{ 
-  pickupCoord = e.result.geometry.coordinates; 
-  pickupName = e.result.place_name; 
-});
-
-const dropGeocoder = new MapboxGeocoder({ accessToken: mapboxgl.accessToken, placeholder:"Search drop", marker:false });
-dropGeocoder.addTo("#dropBox");
-dropGeocoder.on("result", e=>{ 
-  dropCoord = e.result.geometry.coordinates; 
-  dropName = e.result.place_name; 
-});
-
-const baseFare=15, perKm=8;
-
-// Get distance using Mapbox Directions API
-async function getRouteDistance(pickup,drop){
-  const url=`https://api.mapbox.com/directions/v5/mapbox/driving/${pickup[0]},${pickup[1]};${drop[0]},${drop[1]}?geometries=geojson&overview=simplified&access_token=${mapboxgl.accessToken}`;
-  const res=await fetch(url);
-  const data=await res.json();
-  if(!data.routes || !data.routes.length) return null;
-  return data.routes[0].distance/1000; // meters→km
-}
-
-// Estimate Fare button
-document.getElementById("estimate").onclick=async()=>{
-  if(!pickupCoord||!dropCoord){ 
-    document.getElementById("estimateBox").textContent="⚠️ Please select pickup & drop locations from suggestions."; 
-    return; 
-  }
-  const km=await getRouteDistance(pickupCoord,dropCoord);
-  if(!km){ 
-    document.getElementById("estimateBox").textContent="No route found"; 
-    return; 
-  }
-  const fare=Math.round(baseFare+perKm*km);
-  currentEstimate={km,fare};
-  document.getElementById("estimateBox").textContent=`Distance: ${km.toFixed(2)} km — Fare: ₹${fare}`;
-};
-
-// Confirm Booking
-document.getElementById("confirm").onclick=()=>{
-  const phone=document.getElementById("phone").value.trim();
-  if(!phone){ alert("Enter phone number"); return; }
-  if(!pickupCoord||!dropCoord||!currentEstimate){ alert("Estimate fare first"); return; }
-
-  const now=new Date();
-  const datetime=now.toLocaleString();
-
-  document.getElementById("bookingForm").style.display="none";
-  document.getElementById("activeTrip").style.display="block";
-  document.getElementById("tripDetails").innerHTML=`
-    📞 ${phone}<br>
-    📍 ${pickupName} → ${dropName}<br>
-    💰 Fare: ₹${currentEstimate.fare}<br>
-    🕒 ${datetime}<br>
-    Status: Active
-  `;
-};
-
-// End Trip = clear data
-document.getElementById("endTrip").onclick=()=>{
-  document.getElementById("activeTrip").style.display="none";
-  document.getElementById("bookingForm").style.display="block";
-  document.getElementById("estimateBox").textContent="";
-  document.getElementById("phone").value="";
-  pickupCoord=dropCoord=null; pickupName=dropName=""; currentEstimate=null;
-};
-</script>
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="client.js"></script>
 </body>
 </html>
