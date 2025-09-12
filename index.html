@@ -3,407 +3,712 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Live Friend Locator</title>
+    <title>RideEase - Ride Hailing Service</title>
     <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        * {
             margin: 0;
-            padding: 20px;
-            background-color: #f5f5f5;
-        }
-        .container {
-            display: grid;
-            grid-template-columns: 350px 1fr;
-            gap: 20px;
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-        .panel {
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-        header {
-            grid-column: 1 / -1;
-            text-align: center;
-            margin-bottom: 20px;
-        }
-        h1, h2, h3 {
-            margin-top: 0;
-            color: #2c3e50;
-        }
-        form {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            margin-bottom: 20px;
-        }
-        input, button {
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            font-size: 16px;
-        }
-        button {
-            background-color: #3498db;
-            color: white;
-            border: none;
-            cursor: pointer;
-            font-weight: bold;
-            transition: background-color 0.2s;
-        }
-        button:hover { background-color: #2980b9; }
-        button:disabled {
-            background-color: #95a5a6;
-            cursor: not-allowed;
-        }
-        #shareBtn { background-color: #2ecc71; }
-        #shareBtn:hover { background-color: #27ae60; }
-        #stopBtn { background-color: #e74c3c; }
-        #stopBtn:hover { background-color: #c0392b; }
-
-        #friendsList {
-            list-style: none;
             padding: 0;
-            margin: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
-        #friendsList li {
-            padding: 15px;
-            margin-bottom: 10px;
-            background: #f8f9fa;
-            border-radius: 8px;
-            border-left: 4px solid #3498db;
+        
+        body {
+            background-color: #f8f9fa;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            background-color: #4a89dc;
+            color: white;
+            padding: 15px 0;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .header-content {
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
-        .friend-info { flex-grow: 1; }
-        .friend-name { 
-            font-weight: bold; 
-            display: block;
-            margin-bottom: 4px;
+        
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
         }
-        .friend-phone { 
-            color: #7f8c8d; 
-            font-size: 0.9em;
+        
+        .view-toggle {
+            display: flex;
+            gap: 10px;
         }
-        .call-btn {
-            padding: 8px 12px;
-            background-color: #2ecc71;
-            text-decoration: none;
-            color: white;
+        
+        .btn {
+            padding: 8px 16px;
+            border: none;
             border-radius: 4px;
-            font-size: 14px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s;
         }
-        .call-btn:hover { background-color: #27ae60; }
-
-        #map {
-            height: 600px;
-            width: 100%;
-            border-radius: 10px;
+        
+        .btn-primary {
+            background-color: #4a89dc;
+            color: white;
         }
-        #status {
-            padding: 10px;
-            background: #fff3cd;
-            border-radius: 6px;
-            margin: 15px 0;
-            text-align: center;
+        
+        .btn-secondary {
+            background-color: #e9ecef;
+            color: #495057;
         }
-        .group-code {
-            background: #e8f4fc;
-            padding: 15px;
+        
+        .btn-success {
+            background-color: #5cb85c;
+            color: white;
+        }
+        
+        .btn-danger {
+            background-color: #d9534f;
+            color: white;
+        }
+        
+        .btn:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+        }
+        
+        .section {
+            background-color: white;
             border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .section-title {
+            font-size: 20px;
+            margin-bottom: 15px;
+            color: #4a89dc;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .ride-card {
+            border: 1px solid #e1e4e8;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            background-color: #f8f9fa;
+        }
+        
+        .ride-info {
+            margin-bottom: 10px;
+        }
+        
+        .fare-display {
+            font-size: 24px;
+            font-weight: bold;
+            color: #4a89dc;
             text-align: center;
-            margin-bottom: 20px;
+            margin: 20px 0;
+        }
+        
+        .status-bar {
+            background-color: #e9ecef;
+            padding: 10px;
+            border-radius: 4px;
+            text-align: center;
+            margin: 15px 0;
+            font-weight: 500;
+        }
+        
+        .status-pending {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        
+        .status-accepted {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        
+        .status-completed {
+            background-color: #d1ecf1;
+            color: #0c5460;
+        }
+        
+        .map-container {
+            height: 300px;
+            background-color: #e9ecef;
+            border-radius: 8px;
+            margin: 20px 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #6c757d;
+        }
+        
+        .driver-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .driver-card {
+            background-color: white;
+            border: 1px solid #e1e4e8;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+        }
+        
+        .driver-name {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .driver-rating {
+            color: #f0ad4e;
+            margin-bottom: 10px;
+        }
+        
+        .active-ride {
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+        }
+        
+        @media (max-width: 768px) {
+            .driver-list {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
-    <!-- Leaflet CSS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <!-- Leaflet Awesome Markers -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet-awesome-markers/2.0.2/leaflet.awesome-markers.min.css"/>
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
     <header>
-        <h1>📱 Live Friend Locator</h1>
-        <p>See your friends on the map and call them with one click</p>
+        <div class="container header-content">
+            <div class="logo">RideEase</div>
+            <div class="view-toggle">
+                <button id="customerViewBtn" class="btn btn-primary">Customer View</button>
+                <button id="driverViewBtn" class="btn btn-secondary">Driver View</button>
+            </div>
+        </div>
     </header>
 
     <div class="container">
-        <!-- Left Panel: Forms and List -->
-        <div class="panel">
-            <div class="group-code">
-                <h3>Group Code</h3>
-                <p><strong id="groupCode">FRIEND_SQUAD</strong></p>
-                <p>Share this code with your friends!</p>
+        <!-- Customer View -->
+        <div id="customerView">
+            <div class="section">
+                <h2 class="section-title">Book a Ride</h2>
+                <div class="form-group">
+                    <label for="pickupLocation">Pickup Location</label>
+                    <input type="text" id="pickupLocation" placeholder="Enter pickup location">
+                </div>
+                <div class="form-group">
+                    <label for="dropoffLocation">Dropoff Location</label>
+                    <input type="text" id="dropoffLocation" placeholder="Enter dropoff location">
+                </div>
+                <div class="form-group">
+                    <label for="rideType">Ride Type</label>
+                    <select id="rideType">
+                        <option value="standard">Standard (₹10/km + ₹1/min)</option>
+                        <option value="premium">Premium (₹15/km + ₹2/min)</option>
+                        <option value="shared">Shared (₹7/km + ₹0.5/min)</option>
+                    </select>
+                </div>
+                <button id="calculateFareBtn" class="btn btn-primary">Calculate Fare</button>
             </div>
 
-            <div>
-                <h3>Add a Friend</h3>
-                <form id="friendForm">
-                    <input type="text" id="friendName" placeholder="Friend's Name" required>
-                    <input type="tel" id="friendPhone" placeholder="Phone Number (e.g., +919876543210)" required>
-                    <button type="submit">Add to List</button>
-                </form>
+            <div id="fareResult" class="section hidden">
+                <h2 class="section-title">Your Fare Estimate</h2>
+                <div id="fareDisplay" class="fare-display">₹0.00</div>
+                <button id="requestRideBtn" class="btn btn-success" style="width: 100%;">Request Ride</button>
             </div>
 
-            <div>
-                <h3>Your Location</h3>
-                <input type="text" id="userName" placeholder="Your Name">
-                <button id="shareBtn">Share My Location</button>
-                <button id="stopBtn" disabled>Stop Sharing</button>
-                <div id="status">Status: Ready to share</div>
+            <div id="rideStatus" class="section hidden">
+                <h2 class="section-title">Ride Status</h2>
+                <div id="statusMessage" class="status-bar status-pending">Waiting for driver assignment...</div>
+                <div class="map-container">
+                    Simulated Map - Your ride is being processed
+                </div>
+                <div id="driverInfo" class="hidden">
+                    <h3>Your Driver</h3>
+                    <div class="ride-card">
+                        <div class="driver-name" id="assignedDriverName">Driver Name</div>
+                        <div class="driver-rating" id="assignedDriverRating">Rating: 4.8</div>
+                        <div>Vehicle: <span id="assignedVehicle">Tata Magic</span></div>
+                        <div>License: <span id="assignedLicense">DL01AB1234</span></div>
+                    </div>
+                </div>
+                <button id="completeRideBtn" class="btn btn-success hidden" style="width: 100%;">Complete Ride</button>
             </div>
 
-            <div>
-                <h3>Your Friends</h3>
-                <ul id="friendsList"></ul>
+            <div id="rideCompleted" class="section hidden">
+                <h2 class="section-title">Ride Completed</h2>
+                <div class="status-bar status-completed">Thank you for riding with us!</div>
+                <div class="fare-display">Final Fare: <span id="finalFare">₹0.00</span></div>
+                <p>Your ride data has been cleared from the system.</p>
+                <button id="newRideBtn" class="btn btn-primary">Book New Ride</button>
             </div>
         </div>
 
-        <!-- Right Panel: Map -->
-        <div class="panel">
-            <div id="map"></div>
+        <!-- Driver View -->
+        <div id="driverView" class="hidden">
+            <div class="section">
+                <h2 class="section-title">Available Ride Requests</h2>
+                <div id="rideRequestsList"></div>
+            </div>
+
+            <div id="acceptedRide" class="section hidden">
+                <h2 class="section-title">Current Ride</h2>
+                <div id="currentRideInfo"></div>
+                <div class="map-container">
+                    Simulated Navigation Map
+                </div>
+                <button id="startRideBtn" class="btn btn-primary">Start Ride</button>
+                <button id="endRideBtn" class="btn btn-success hidden">End Ride</button>
+            </div>
+
+            <div id="noRides" class="section">
+                <p>No active ride requests at the moment. Please check back later.</p>
+            </div>
         </div>
     </div>
 
-    <!-- JavaScript Libraries -->
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-awesome-markers/2.0.2/leaflet.awesome-markers.min.js"></script>
-
     <script>
-        // !!! REPLACE WITH YOUR FIREBASE CONFIG !!!
-        const firebaseConfig = {
-            apiKey: "YOUR_API_KEY",
-            authDomain: "YOUR_PROJECT.firebaseapp.com",
-            projectId: "YOUR_PROJECT_ID",
-            storageBucket: "YOUR_PROJECT.appspot.com",
-            messagingSenderId: "123456789",
-            appId: "YOUR_APP_ID"
+        // Application state
+        const state = {
+            currentView: 'customer',
+            rideRequests: JSON.parse(localStorage.getItem('rideRequests')) || [],
+            drivers: [
+                { id: 1, name: "Rajesh Kumar", vehicle: "Tata Magic", license: "DL01AB1234", rating: 4.8, available: true },
+                { id: 2, name: "Suresh Singh", vehicle: "Mahindra Supro", license: "DL02CD5678", rating: 4.6, available: true },
+                { id: 3, name: "Anil Patel", vehicle: "Bajaj Qute", license: "DL03EF9012", rating: 4.9, available: true }
+            ],
+            currentRide: JSON.parse(localStorage.getItem('currentRide')) || null
         };
 
-        // Initialize Firebase
-        const app = firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
+        // DOM Elements
+        const customerView = document.getElementById('customerView');
+        const driverView = document.getElementById('driverView');
+        const customerViewBtn = document.getElementById('customerViewBtn');
+        const driverViewBtn = document.getElementById('driverViewBtn');
+        
+        // Customer view elements
+        const fareResult = document.getElementById('fareResult');
+        const rideStatus = document.getElementById('rideStatus');
+        const rideCompleted = document.getElementById('rideCompleted');
+        const calculateFareBtn = document.getElementById('calculateFareBtn');
+        const requestRideBtn = document.getElementById('requestRideBtn');
+        const completeRideBtn = document.getElementById('completeRideBtn');
+        const newRideBtn = document.getElementById('newRideBtn');
+        const fareDisplay = document.getElementById('fareDisplay');
+        const finalFare = document.getElementById('finalFare');
+        const statusMessage = document.getElementById('statusMessage');
+        const driverInfo = document.getElementById('driverInfo');
+        const assignedDriverName = document.getElementById('assignedDriverName');
+        const assignedDriverRating = document.getElementById('assignedDriverRating');
+        const assignedVehicle = document.getElementById('assignedVehicle');
+        const assignedLicense = document.getElementById('assignedLicense');
+        
+        // Driver view elements
+        const rideRequestsList = document.getElementById('rideRequestsList');
+        const acceptedRide = document.getElementById('acceptedRide');
+        const noRides = document.getElementById('noRides');
+        const currentRideInfo = document.getElementById('currentRideInfo');
+        const startRideBtn = document.getElementById('startRideBtn');
+        const endRideBtn = document.getElementById('endRideBtn');
 
-        // App State
-        let map;
-        let userMarker;
-        const friendMarkers = {};
-        let watchId = null;
-        const myFriends = {}; // Stores friend data: { name, phone }
-        const groupCode = "FRIEND_SQUAD"; // Fixed for this demo
-
-        // Initialize Map
-        function initMap() {
-            map = L.map('map').setView([20.5937, 78.9629], 5);
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '&copy; OpenStreetMap contributors'
-            }).addTo(map);
-        }
-        initMap();
-
-        // --- Form Handler: Add Friend to List ---
-        document.getElementById('friendForm').addEventListener('submit', function(e) {
-            e.preventDefault(); // Prevent page reload
-
-            const name = document.getElementById('friendName').value.trim();
-            const phone = document.getElementById('friendPhone').value.trim();
-
-            if (name && phone) {
-                // Add to local list
-                myFriends[name] = { phone: phone };
-                updateFriendsList();
-                // Clear the form
-                document.getElementById('friendForm').reset();
-            }
-        });
-
-        // Update the Friends List in the UI
-        function updateFriendsList() {
-            const listElement = document.getElementById('friendsList');
-            listElement.innerHTML = ''; // Clear the list
-
-            for (const [name, data] of Object.entries(myFriends)) {
-                const li = document.createElement('li');
-                
-                const friendInfo = document.createElement('div');
-                friendInfo.className = 'friend-info';
-                friendInfo.innerHTML = `
-                    <span class="friend-name">${name}</span>
-                    <span class="friend-phone">${data.phone}</span>
-                `;
-
-                const callLink = document.createElement('a');
-                callLink.href = `tel:${data.phone}`;
-                callLink.className = 'call-btn';
-                callLink.textContent = 'Call';
-                callLink.title = `Call ${data.phone}`;
-
-                li.appendChild(friendInfo);
-                li.appendChild(callLink);
-                listElement.appendChild(li);
-            }
+        // Initialize the application
+        function init() {
+            updateViews();
+            attachEventListeners();
+            checkExistingRide();
         }
 
-        // --- Location Sharing Functions ---
-        document.getElementById('shareBtn').addEventListener('click', startSharing);
-        document.getElementById('stopBtn').addEventListener('click', stopSharing);
-
-        function startSharing() {
-            const userName = document.getElementById('userName').value.trim();
-            if (!userName) {
-                alert("Please enter your name first.");
-                return;
-            }
-            if (!navigator.geolocation) {
-                alert("Geolocation is not supported by your browser.");
-                return;
-            }
-
-            updateStatus("Getting location...");
-            toggleSharingButtons(true);
-
-            // Get initial position and start watching
-            navigator.geolocation.getCurrentPosition(success, error, { enableHighAccuracy: true });
-            watchId = navigator.geolocation.watchPosition(success, error, {
-                enableHighAccuracy: true,
-                maximumAge: 30000,
-                timeout: 27000
-            });
-        }
-
-        function success(position) {
-            const userName = document.getElementById('userName').value.trim();
-            const { latitude, longitude, accuracy } = position.coords;
-
-            updateStatus(`Sharing live location (Accuracy: ${Math.round(accuracy)}m)`);
-
-            // Update our own marker on the map
-            updateOwnMarker(userName, latitude, longitude);
-
-            // Send location to Firebase (so friends can see it)
-            const locationRef = db.collection('groups').doc(groupCode).collection('locations').doc(userName);
-            locationRef.set({
-                lat: latitude,
-                lng: longitude,
-                accuracy: accuracy,
-                timestamp: firebase.firestore.FieldValue.serverTimestamp()
-            }).catch(err => console.error("Error writing location: ", err));
-        }
-
-        function updateOwnMarker(name, lat, lng) {
-            if (!userMarker) {
-                // Create a new marker with a custom icon (blue)
-                userMarker = L.AwesomeMarkers.icon({
-                    icon: 'user',
-                    markerColor: 'blue',
-                    prefix: 'fa'
-                });
-                userMarker = L.marker([lat, lng], {icon: userMarker}).addTo(map)
-                    .bindPopup(`<b>You (${name})</b><br>This is your location.`).openPopup();
+        // Update views based on current state
+        function updateViews() {
+            // Show/hide customer/driver views
+            if (state.currentView === 'customer') {
+                customerView.style.display = 'block';
+                driverView.style.display = 'none';
+                customerViewBtn.classList.add('btn-primary');
+                customerViewBtn.classList.remove('btn-secondary');
+                driverViewBtn.classList.remove('btn-primary');
+                driverViewBtn.classList.add('btn-secondary');
             } else {
-                userMarker.setLatLng([lat, lng]);
+                customerView.style.display = 'none';
+                driverView.style.display = 'block';
+                driverViewBtn.classList.add('btn-primary');
+                driverViewBtn.classList.remove('btn-secondary');
+                customerViewBtn.classList.remove('btn-primary');
+                customerViewBtn.classList.add('btn-secondary');
+                updateDriverView();
             }
-            map.setView([lat, lng], 16);
         }
 
-        function error(err) {
-            console.error('Geolocation error:', err);
-            updateStatus('Error getting location. Please check permissions.');
-            stopSharing();
+        // Check if there's an existing ride in progress
+        function checkExistingRide() {
+            if (state.currentRide) {
+                if (state.currentRide.status === 'requested') {
+                    showElement(fareResult);
+                    hideElement(rideStatus);
+                    hideElement(rideCompleted);
+                } else if (state.currentRide.status === 'accepted') {
+                    hideElement(fareResult);
+                    showElement(rideStatus);
+                    hideElement(rideCompleted);
+                    statusMessage.textContent = 'Driver is on the way';
+                    statusMessage.className = 'status-bar status-accepted';
+                    showElement(driverInfo);
+                    
+                    // Find driver info
+                    const driver = state.drivers.find(d => d.id === state.currentRide.driverId);
+                    if (driver) {
+                        assignedDriverName.textContent = driver.name;
+                        assignedDriverRating.textContent = `Rating: ${driver.rating}`;
+                        assignedVehicle.textContent = driver.vehicle;
+                        assignedLicense.textContent = driver.license;
+                    }
+                } else if (state.currentRide.status === 'completed') {
+                    hideElement(fareResult);
+                    hideElement(rideStatus);
+                    showElement(rideCompleted);
+                    finalFare.textContent = `₹${state.currentRide.fare.toFixed(2)}`;
+                }
+            }
         }
 
-        function stopSharing() {
-            const userName = document.getElementById('userName').value.trim();
-            if (watchId) navigator.geolocation.clearWatch(watchId);
-            if (userMarker) map.removeLayer(userMarker);
-            userMarker = null;
+        // Update the driver view with current ride requests
+        function updateDriverView() {
+            // Clear previous content
+            rideRequestsList.innerHTML = '';
             
-            // Remove our data from Firebase
-            const locationRef = db.collection('groups').doc(groupCode).collection('locations').doc(userName);
-            locationRef.delete().catch(err => console.error("Error removing location: ", err));
-
-            updateStatus("Ready to share");
-            toggleSharingButtons(false);
-        }
-
-        function toggleSharingButtons(isSharing) {
-            document.getElementById('shareBtn').disabled = isSharing;
-            document.getElementById('stopBtn').disabled = !isSharing;
-        }
-
-        function updateStatus(message) {
-            document.getElementById('status').textContent = `Status: ${message}`;
-        }
-
-        // --- Firebase Real-Time Listener for Friends' Locations ---
-        function setupRealTimeListener() {
-            const locationsRef = db.collection('groups').doc(groupCode).collection('locations');
-
-            locationsRef.onSnapshot((snapshot) => {
-                snapshot.docChanges().forEach((change) => {
-                    const friendName = change.doc.id;
-                    const friendData = change.doc.data();
-
-                    // Don't show ourselves on the map from Firebase
-                    const myName = document.getElementById('userName').value.trim();
-                    if (friendName === myName) return;
-
-                    if (change.type === "added" || change.type === "modified") {
-                        updateFriendOnMap(friendName, friendData);
-                    }
-                    if (change.type === "removed") {
-                        removeFriendFromMap(friendName);
-                    }
+            // Filter available ride requests
+            const availableRequests = state.rideRequests.filter(ride => ride.status === 'requested');
+            
+            if (availableRequests.length > 0) {
+                showElement(rideRequestsList);
+                hideElement(noRides);
+                
+                availableRequests.forEach(ride => {
+                    const rideElement = document.createElement('div');
+                    rideElement.className = 'ride-card';
+                    rideElement.innerHTML = `
+                        <div class="ride-info">
+                            <strong>From:</strong> ${ride.pickup}<br>
+                            <strong>To:</strong> ${ride.dropoff}<br>
+                            <strong>Fare:</strong> ₹${ride.fare.toFixed(2)}<br>
+                            <strong>Ride Type:</strong> ${ride.type}
+                        </div>
+                        <button class="btn btn-primary accept-ride" data-id="${ride.id}">Accept Ride</button>
+                    `;
+                    rideRequestsList.appendChild(rideElement);
                 });
-            });
-        }
-        // Start listening for friend updates
-        setupRealTimeListener();
-
-        // Function to update a friend's marker on the map
-        function updateFriendOnMap(name, data) {
-            const latLng = [data.lat, data.lng];
-            const phone = myFriends[name]?.phone || 'Number not saved'; // Get phone from our list
-
-            if (friendMarkers[name]) {
-                // Update existing marker
-                friendMarkers[name].setLatLng(latLng);
-                friendMarkers[name].setPopupContent(createPopupContent(name, phone));
+                
+                // Add event listeners to accept buttons
+                document.querySelectorAll('.accept-ride').forEach(button => {
+                    button.addEventListener('click', function() {
+                        const rideId = this.getAttribute('data-id');
+                        acceptRide(rideId);
+                    });
+                });
             } else {
-                // Create new marker with a green icon
-                const friendIcon = L.AwesomeMarkers.icon({
-                    icon: 'user',
-                    markerColor: 'green',
-                    prefix: 'fa'
-                });
-                friendMarkers[name] = L.marker(latLng, {icon: friendIcon})
-                    .addTo(map)
-                    .bindPopup(createPopupContent(name, phone));
+                hideElement(rideRequestsList);
+                showElement(noRides);
+            }
+            
+            // Check if driver has an accepted ride
+            const driverRide = state.rideRequests.find(ride => 
+                ride.status === 'accepted' || ride.status === 'started'
+            );
+            
+            if (driverRide) {
+                showElement(acceptedRide);
+                currentRideInfo.innerHTML = `
+                    <div class="ride-info">
+                        <strong>From:</strong> ${driverRide.pickup}<br>
+                        <strong>To:</strong> ${driverRide.dropoff}<br>
+                        <strong>Estimated Fare:</strong> ₹${driverRide.fare.toFixed(2)}<br>
+                        <strong>Ride Type:</strong> ${driverRide.type}
+                    </div>
+                `;
+                
+                if (driverRide.status === 'accepted') {
+                    showElement(startRideBtn);
+                    hideElement(endRideBtn);
+                } else if (driverRide.status === 'started') {
+                    hideElement(startRideBtn);
+                    showElement(endRideBtn);
+                }
+            } else {
+                hideElement(acceptedRide);
             }
         }
 
-        function createPopupContent(name, phone) {
-            // Creates the HTML content for the popup, including a call link
-            return `
-                <b>${name}</b><br>
-                📞 <a href="tel:${phone}" style="color: #2ecc71; text-decoration: none;">
-                    <strong>${phone}</strong>
-                </a><br>
-                <em>Last updated: Just now</em>
-            `;
+        // Calculate fare based on distance and ride type
+        function calculateFare() {
+            const pickup = document.getElementById('pickupLocation').value;
+            const dropoff = document.getElementById('dropoffLocation').value;
+            const rideType = document.getElementById('rideType').value;
+            
+            if (!pickup || !dropoff) {
+                alert('Please enter both pickup and dropoff locations');
+                return;
+            }
+            
+            // Simulate distance calculation (in real app, would use maps API)
+            const distance = Math.random() * 10 + 2; // 2-12 km
+            const time = distance * 4; // 4 minutes per km
+            
+            let baseRate, timeRate;
+            switch(rideType) {
+                case 'standard':
+                    baseRate = 10;
+                    timeRate = 1;
+                    break;
+                case 'premium':
+                    baseRate = 15;
+                    timeRate = 2;
+                    break;
+                case 'shared':
+                    baseRate = 7;
+                    timeRate = 0.5;
+                    break;
+                default:
+                    baseRate = 10;
+                    timeRate = 1;
+            }
+            
+            const fare = (distance * baseRate) + (time * timeRate);
+            fareDisplay.textContent = `₹${fare.toFixed(2)}`;
+            showElement(fareResult);
+            
+            // Store calculated fare for later use
+            state.calculatedFare = fare;
         }
 
-        function removeFriendFromMap(name) {
-            if (friendMarkers[name]) {
-                map.removeLayer(friendMarkers[name]);
-                delete friendMarkers[name];
+        // Request a ride
+        function requestRide() {
+            const pickup = document.getElementById('pickupLocation').value;
+            const dropoff = document.getElementById('dropoffLocation').value;
+            const rideType = document.getElementById('rideType').value;
+            const fare = state.calculatedFare;
+            
+            const rideRequest = {
+                id: Date.now(), // Unique ID
+                pickup,
+                dropoff,
+                type: rideType,
+                fare,
+                status: 'requested',
+                timestamp: new Date()
+            };
+            
+            // Add to ride requests
+            state.rideRequests.push(rideRequest);
+            localStorage.setItem('rideRequests', JSON.stringify(state.rideRequests));
+            
+            // Update UI
+            hideElement(fareResult);
+            showElement(rideStatus);
+            
+            // Simulate driver assignment
+            setTimeout(assignDriver, 3000);
+        }
+
+        // Assign a driver to the ride
+        function assignDriver() {
+            // Find the latest ride request
+            const rideRequest = state.rideRequests[state.rideRequests.length - 1];
+            
+            // Find an available driver
+            const availableDriver = state.drivers.find(driver => driver.available);
+            
+            if (availableDriver) {
+                // Update ride request
+                rideRequest.status = 'accepted';
+                rideRequest.driverId = availableDriver.id;
+                rideRequest.driverName = availableDriver.name;
+                
+                // Update driver availability
+                availableDriver.available = false;
+                
+                // Update state and storage
+                state.currentRide = rideRequest;
+                localStorage.setItem('rideRequests', JSON.stringify(state.rideRequests));
+                localStorage.setItem('currentRide', JSON.stringify(state.currentRide));
+                
+                // Update UI
+                statusMessage.textContent = 'Driver is on the way';
+                statusMessage.className = 'status-bar status-accepted';
+                showElement(driverInfo);
+                
+                // Show driver info
+                assignedDriverName.textContent = availableDriver.name;
+                assignedDriverRating.textContent = `Rating: ${availableDriver.rating}`;
+                assignedVehicle.textContent = availableDriver.vehicle;
+                assignedLicense.textContent = availableDriver.license;
+                
+                showElement(completeRideBtn);
             }
         }
+
+        // Accept a ride (driver perspective)
+        function acceptRide(rideId) {
+            const rideIndex = state.rideRequests.findIndex(ride => ride.id === parseInt(rideId));
+            
+            if (rideIndex !== -1) {
+                // Find an available driver (in real app, would be the logged-in driver)
+                const availableDriver = state.drivers.find(driver => driver.available);
+                
+                if (availableDriver) {
+                    // Update ride request
+                    state.rideRequests[rideIndex].status = 'accepted';
+                    state.rideRequests[rideIndex].driverId = availableDriver.id;
+                    state.rideRequests[rideIndex].driverName = availableDriver.name;
+                    
+                    // Update driver availability
+                    availableDriver.available = false;
+                    
+                    // Update storage
+                    localStorage.setItem('rideRequests', JSON.stringify(state.rideRequests));
+                    
+                    // Update UI
+                    updateDriverView();
+                }
+            }
+        }
+
+        // Start the ride (driver)
+        function startRide() {
+            const activeRide = state.rideRequests.find(ride => ride.status === 'accepted');
+            
+            if (activeRide) {
+                activeRide.status = 'started';
+                localStorage.setItem('rideRequests', JSON.stringify(state.rideRequests));
+                updateDriverView();
+            }
+        }
+
+        // End the ride (driver)
+        function endRide() {
+            const activeRideIndex = state.rideRequests.findIndex(ride => 
+                ride.status === 'started' || ride.status === 'accepted'
+            );
+            
+            if (activeRideIndex !== -1) {
+                state.rideRequests[activeRideIndex].status = 'completed';
+                
+                // Make driver available again
+                const driverId = state.rideRequests[activeRideIndex].driverId;
+                const driver = state.drivers.find(d => d.id === driverId);
+                if (driver) {
+                    driver.available = true;
+                }
+                
+                // Update current ride
+                state.currentRide = state.rideRequests[activeRideIndex];
+                localStorage.setItem('currentRide', JSON.stringify(state.currentRide));
+                
+                // Remove from active requests (simulating data deletion after trip)
+                state.rideRequests.splice(activeRideIndex, 1);
+                localStorage.setItem('rideRequests', JSON.stringify(state.rideRequests));
+                
+                // Update UI
+                updateDriverView();
+                
+                // If in customer view, show completion
+                if (state.currentView === 'customer') {
+                    hideElement(rideStatus);
+                    showElement(rideCompleted);
+                    finalFare.textContent = `₹${state.currentRide.fare.toFixed(2)}`;
+                }
+            }
+        }
+
+        // Complete the ride (customer)
+        function completeRide() {
+            // This would typically be triggered by the driver, but we'll simulate it
+            endRide();
+        }
+
+        // Start a new ride
+        function newRide() {
+            // Clear form fields
+            document.getElementById('pickupLocation').value = '';
+            document.getElementById('dropoffLocation').value = '';
+            document.getElementById('rideType').value = 'standard';
+            
+            // Reset UI
+            hideElement(rideCompleted);
+            hideElement(rideStatus);
+            hideElement(fareResult);
+            
+            // Clear current ride from storage
+            localStorage.removeItem('currentRide');
+            state.currentRide = null;
+        }
+
+        // Helper functions
+        function showElement(element) {
+            element.classList.remove('hidden');
+        }
+        
+        function hideElement(element) {
+            element.classList.add('hidden');
+        }
+
+        // Attach event listeners
+        function attachEventListeners() {
+            // View toggle
+            customerViewBtn.addEventListener('click', () => {
+                state.currentView = 'customer';
+                updateViews();
+            });
+            
+            driverViewBtn.addEventListener('click', () => {
+                state.currentView = 'driver';
+                updateViews();
+            });
+            
+            // Customer actions
+            calculateFareBtn.addEventListener('click', calculateFare);
+            requestRideBtn.addEventListener('click', requestRide);
+            completeRideBtn.addEventListener('click', completeRide);
+            newRideBtn.addEventListener('click', newRide);
+            
+            // Driver actions
+            startRideBtn.addEventListener('click', startRide);
+            endRideBtn.addEventListener('click', endRide);
+        }
+
+        // Initialize the app
+        init();
     </script>
 </body>
 </html>
