@@ -1,140 +1,128 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Mini Tambola — Host Controlled (GitHub Pages)</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;500;700&display=swap" rel="stylesheet">
-  <style>
-    :root{--bg:#071427;--card:#0b1320;--accent:#ffd166;--accent-2:#06b6d4;--muted:#94a3b8;--glass:rgba(255,255,255,0.03)}
-    *{box-sizing:border-box}
-    html,body{height:100%;margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,'Helvetica Neue',Arial;color:#e6eef6;background:linear-gradient(180deg,#021222 0%, #052233 100%);-webkit-font-smoothing:antialiased}
-    .wrap{max-width:1100px;margin:18px auto;padding:18px}
-    header{display:flex;gap:16px;align-items:center;justify-content:space-between;margin-bottom:18px}
-    h1{font-size:20px;margin:0}
-    .grid{display:grid;grid-template-columns:360px 1fr;gap:18px}
-    .card{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border-radius:14px;padding:16px;box-shadow:0 10px 30px rgba(3,8,20,0.6);border:1px solid rgba(255,255,255,0.02)}
-    label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px}
-    input[type=text]{width:100%;padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:inherit}
-    button{background:var(--accent);border:none;color:#072022;padding:8px 12px;border-radius:10px;cursor:pointer;font-weight:700}
-    .muted-btn{background:transparent;border:1px solid rgba(255,255,255,0.06);color:var(--muted);padding:8px;border-radius:10px;cursor:pointer}
-    .small{font-size:13px;color:var(--muted)}
-    .ticket{background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.02));padding:12px;border-radius:10px}
-    .ticket-grid{display:grid;grid-template-columns:repeat(9,1fr);gap:6px}
-    .cell{height:52px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px;background:rgba(255,255,255,0.02);color:#dbeafe}
-    .blank{background:transparent;color:transparent;font-weight:400}
-    .called{background:linear-gradient(180deg, #ffe8a8, #ffd166);color:#091827;box-shadow:0 6px 18px rgba(255,209,102,0.12)}
-    .controls{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
-    .called-numbers{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
-    .chip{background:rgba(255,255,255,0.03);padding:6px 8px;border-radius:10px;font-weight:700}
-    .flex-between{display:flex;justify-content:space-between;align-items:center}
-    .linkbox{background:rgba(255,255,255,0.02);padding:8px;border-radius:8px;font-size:13px}
-    .voice-toggle{display:flex;gap:8px;align-items:center}
-    footer{margin-top:14px;color:var(--muted);font-size:13px}
-    .tag{font-size:12px;padding:4px 8px;border-radius:8px;background:rgba(255,255,255,0.02);color:var(--muted)}
-    @media(max-width:880px){.grid{grid-template-columns:1fr} .cell{height:44px;font-size:14px}}  
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mini Tambola Hosted</title>
+<style>
+body {font-family: Arial, sans-serif; background:#071427; color:#e6eef6; margin:0; padding:0;}
+.wrap {max-width:1000px; margin:20px auto; padding:20px;}
+header {display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;}
+.card {background:rgba(11,19,32,0.9); padding:20px; border-radius:12px; margin-bottom:20px;}
+.ticket-grid {display:grid; grid-template-columns:repeat(9,1fr); gap:4px; margin-top:10px;}
+.cell {height:40px; display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,0.05); border-radius:6px; font-weight:bold;}
+.called {background:#ffd166; color:#071427;}
+.chip {display:inline-block; background:rgba(255,255,255,0.1); padding:4px 6px; margin:2px; border-radius:6px; font-weight:bold;}
+button {padding:8px 12px; margin:4px; border:none; border-radius:8px; cursor:pointer; font-weight:bold;}
+</style>
 </head>
 <body>
-  <div class="wrap">
-    <header>
-      <h1>Mini Tambola — Host Controlled (GitHub Pages)</h1>
-      <div class="small">Static host + client sync • Voice announcer (GB)</div>
-    </header>
+<div class="wrap">
+<header>
+<h1>Mini Tambola Host</h1>
+<div>Static hosted, multi-player tickets, GB voice announce</div>
+</header>
+<div class="card">
+<label>Room Code: <input type="text" id="roomCode" value="ROOM123"/></label>
+<div style="margin-top:10px;">
+<button id="startGame">Start Game</button>
+<button id="callNext" disabled>Call Next Number</button>
+<button id="resetCalled">Reset Called</button>
+</div>
+<div style="margin-top:10px;">Called Numbers:</div>
+<div id="calledList"></div>
+<div style="margin-top:10px;">Last Called: <span id="lastCalled">—</span></div>
+</div>
 
-    <div class="grid">
-      <!-- LEFT: Room / Host Controls -->
-      <div class="card">
-        <div>
-          <label>Room Code (share with players)</label>
-          <input id="roomCode" type="text" value="ROOM123" />
-        </div>
+<div class="card">
+<label>Ticket:</label>
+<div id="ticketGrid" class="ticket-grid"></div>
+<button id="generateTicket">Generate Ticket</button>
+</div>
+</div>
 
-        <div style="margin-top:10px" class="flex-between">
-          <div class="row">
-            <label style="margin:0">Role</label>
-            <div style="display:flex;gap:8px;margin-left:8px">
-              <button id="modeHost" class="small">Host</button>
-              <button id="modePlayer" class="small muted-btn">Player</button>
-            </div>
-          </div>
-          <div class="voice-toggle">
-            <label class="small" style="margin:0">Voice</label>
-            <select id="voiceSelect" class="muted-btn" style="padding:6px;border-radius:8px">
-              <option value="gb">British English (GB)</option>
-              <option value="us">American English (US)</option>
-            </select>
-            <button id="voiceOnOff" class="muted-btn">🔈 On</button>
-          </div>
-        </div>
+<script>
+// Initialize game state
+const gameState = {room:'', started:false, called:[], ticket:[]};
 
-        <div id="hostControls" style="display:block;margin-top:12px">
-          <label>Host Controls</label>
-          <div class="controls">
-            <button id="startGame">Start Game</button>
-            <button id="callNext">Call Next Number</button>
-            <button id="resetCalled" class="muted-btn">Reset Called</button>
-            <button id="copyState" class="muted-btn">Copy State Link</button>
-            <button id="exportState" class="muted-btn">Export State Text</button>
-            <button id="downloadTicketImg" class="muted-btn">Download Ticket PNG</button>
-          </div>
+// Utility: generate simple 3x9 ticket with random numbers
+function generateTicket(){
+    const numbers = Array.from({length:90},(_,i)=>i+1);
+    const ticket=[];
+    for(let r=0;r<3;r++){
+        const row=[];
+        for(let c=0;c<9;c++){
+            if(Math.random()<0.3){
+                const idx=Math.floor(Math.random()*numbers.length);
+                row.push(numbers.splice(idx,1)[0]);
+            } else {row.push('');}
+        }
+        ticket.push(row);
+    }
+    gameState.ticket=ticket;
+    renderTicket();
+}
 
-          <div style="margin-top:10px" class="small">Called Numbers</div>
-          <div id="calledList" class="called-numbers"></div>
-        </div>
+function renderTicket(){
+    const grid=document.getElementById('ticketGrid');
+    grid.innerHTML='';
+    gameState.ticket.forEach(row=>row.forEach(num=>{
+        const div=document.createElement('div');
+        div.className='cell';
+        div.textContent=num || '';
+        grid.appendChild(div);
+    }));
+}
 
-        <div id="playerControls" style="display:none;margin-top:8px">
-          <label>Player Controls</label>
-          <div class="row" style="margin-top:6px">
-            <input id="playerName" type="text" placeholder="Your name (for deterministic ticket)" />
-            <button id="getTicket" class="small" style="margin-left:8px">Get Ticket</button>
-          </div>
-          <div style="margin-top:8px;display:flex;gap:8px">
-            <button id="syncFromLink" class="muted-btn">Paste State Text</button>
-            <button id="clearMarks" class="muted-btn">Clear Marks</button>
-          </div>
-        </div>
+// Start Game button
+document.getElementById('startGame').addEventListener('click',()=>{
+    gameState.room=document.getElementById('roomCode').value||'ROOM123';
+    gameState.started=true;
+    gameState.called=[];
+    document.getElementById('calledList').innerHTML='';
+    document.getElementById('lastCalled').textContent='—';
+    document.getElementById('callNext').disabled=false;
+    speakText('Game started for room ' + gameState.room);
+});
 
-        <footer>
-          Tips: Host clicks <strong>Start Game</strong> then <strong>Call Next Number</strong>. Use <strong>Copy State Link</strong> to share the current called numbers with players. Voice annnouncer uses your browser's speech synthesis.
-        </footer>
-      </div>
+// Call Next Number
+document.getElementById('callNext').addEventListener('click',()=>{
+    if(!gameState.started){alert('Start the game first!'); return;}
+    const remaining = Array.from({length:90},(_,i)=>i+1).filter(n=>!gameState.called.includes(n));
+    if(remaining.length===0){alert('All numbers called!'); return;}
+    const next=remaining[Math.floor(Math.random()*remaining.length)];
+    gameState.called.push(next);
+    document.getElementById('lastCalled').textContent=next;
+    document.getElementById('calledList').innerHTML=gameState.called.map(n=>`<span class="chip">${n}</span>`).join('');
+    speakText('Number ' + next);
+});
 
-      <!-- RIGHT: Ticket & Game View -->
-      <div class="card">
-        <div class="flex-between">
-          <div>
-            <label>Active Game</label>
-            <div id="activeInfo" class="small">Not started</div>
-          </div>
-          <div class="row">
-            <div class="small">Last called:</div>
-            <div id="lastCalled" class="chip">—</div>
-          </div>
-        </div>
+// Reset called numbers
+document.getElementById('resetCalled').addEventListener('click',()=>{
+    gameState.called=[];
+    document.getElementById('calledList').innerHTML='';
+    document.getElementById('lastCalled').textContent='—';
+});
 
-        <hr style="border:none;height:10px;opacity:0.02" />
+// Generate ticket
+document.getElementById('generateTicket').addEventListener('click',()=>{
+    generateTicket();
+});
 
-        <div style="display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap">
-          <div style="flex:1;min-width:260px">
-            <label>Ticket</label>
-            <div id="ticketArea" class="ticket" style="margin-top:8px">
-              <div id="ticketGrid" class="ticket-grid"></div>
-            </div>
+// Speech synthesis
+function speakText(txt){
+    const voices = speechSynthesis.getVoices();
+    const chosen = voices.find(v=>v.lang.toLowerCase().startsWith('en-gb'))||voices[0];
+    const utter = new SpeechSynthesisUtterance(txt);
+    utter.voice=chosen;
+    utter.rate=0.95;
+    speechSynthesis.speak(utter);
+}
+// ensure voices are loaded on Chrome
+speechSynthesis.onvoiceschanged=()=>{};
 
-            <div style="margin-top:8px;display:flex;gap:8px;align-items:center">
-              <button id="regenTicket" class="muted-btn">Regenerate Ticket</button>
-              <button id="downloadTicket" class="muted-btn">Download PNG</button>
-              <div id="ticketName" class="small" style="margin-left:auto;color:var(--muted)"></div>
-            </div>
-          </div>
-
-          <div style="width:280px;min-width:240px">
-            <label>Called Numbers (quick view)</label>
-            <div id="calledGrid" class="ticket" style="margin-top:8px;padding:12px">
-              <div id="calledGridInner" class="ticket-grid"></div>
-            </div>
-
-            <div style="margin-top:10px">
-              <label>Share / Sync</label>
-              <div class="linkbox" id="shareBox">No state copied</div>
+// Generate initial ticket
+generateTicket();
+</script>
+</body>
+</html>
