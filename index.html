@@ -44,8 +44,32 @@ button {padding:8px 12px; margin:4px; border:none; border-radius:8px; cursor:poi
 <script>
 // Initialize game state
 const gameState = {room:'', started:false, called:[], ticket:[]};
+let voices = [];
 
-// Utility: generate simple 3x9 ticket with random numbers
+// Load voices properly
+function loadVoices(callback){
+    voices = speechSynthesis.getVoices();
+    if(voices.length > 0){
+        callback();
+    } else {
+        speechSynthesis.onvoiceschanged = () => {
+            voices = speechSynthesis.getVoices();
+            callback();
+        };
+    }
+}
+
+// Speech function
+function speakText(txt){
+    if(!voices || voices.length===0) return;
+    const chosen = voices.find(v=>v.lang.toLowerCase().startsWith('en-gb')) || voices[0];
+    const utter = new SpeechSynthesisUtterance(txt);
+    utter.voice = chosen;
+    utter.rate = 0.95;
+    speechSynthesis.speak(utter);
+}
+
+// Utility: generate simple 3x9 ticket
 function generateTicket(){
     const numbers = Array.from({length:90},(_,i)=>i+1);
     const ticket=[];
@@ -76,13 +100,15 @@ function renderTicket(){
 
 // Start Game button
 document.getElementById('startGame').addEventListener('click',()=>{
-    gameState.room=document.getElementById('roomCode').value||'ROOM123';
-    gameState.started=true;
-    gameState.called=[];
-    document.getElementById('calledList').innerHTML='';
-    document.getElementById('lastCalled').textContent='—';
-    document.getElementById('callNext').disabled=false;
-    speakText('Game started for room ' + gameState.room);
+    loadVoices(()=>{
+        gameState.room = document.getElementById('roomCode').value || 'ROOM123';
+        gameState.started = true;
+        gameState.called = [];
+        document.getElementById('calledList').innerHTML='';
+        document.getElementById('lastCalled').textContent='—';
+        document.getElementById('callNext').disabled=false;
+        speakText('Game started for room ' + gameState.room);
+    });
 });
 
 // Call Next Number
@@ -104,22 +130,10 @@ document.getElementById('resetCalled').addEventListener('click',()=>{
     document.getElementById('lastCalled').textContent='—';
 });
 
-// Generate ticket
+// Generate ticket button
 document.getElementById('generateTicket').addEventListener('click',()=>{
     generateTicket();
 });
-
-// Speech synthesis
-function speakText(txt){
-    const voices = speechSynthesis.getVoices();
-    const chosen = voices.find(v=>v.lang.toLowerCase().startsWith('en-gb'))||voices[0];
-    const utter = new SpeechSynthesisUtterance(txt);
-    utter.voice=chosen;
-    utter.rate=0.95;
-    speechSynthesis.speak(utter);
-}
-// ensure voices are loaded on Chrome
-speechSynthesis.onvoiceschanged=()=>{};
 
 // Generate initial ticket
 generateTicket();
