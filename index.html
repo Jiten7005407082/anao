@@ -117,6 +117,31 @@
             border-radius: 10px;
         }
         
+        .manual-input {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        
+        .manual-input input {
+            flex: 1;
+            padding: 15px;
+            font-size: 1.2rem;
+            border: none;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .manual-input button {
+            padding: 15px 25px;
+            background: #2ecc71;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
         .called-numbers {
             display: flex;
             flex-wrap: wrap;
@@ -181,14 +206,6 @@
         
         #newGame:hover {
             background: #c0392b;
-        }
-        
-        #callNumber {
-            background: #2ecc71;
-        }
-        
-        #callNumber:hover {
-            background: #27ae60;
         }
         
         .player-list {
@@ -284,6 +301,33 @@
             font-weight: bold;
         }
         
+        .number-grid {
+            display: grid;
+            grid-template-columns: repeat(10, 1fr);
+            gap: 8px;
+            margin-top: 15px;
+        }
+        
+        .grid-number {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
+        .grid-number.called {
+            background: #e74c3c;
+        }
+        
+        .grid-number:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
         @media (max-width: 768px) {
             .game-area {
                 flex-direction: column;
@@ -301,6 +345,10 @@
             .share-link input {
                 width: 60%;
             }
+            
+            .number-grid {
+                grid-template-columns: repeat(5, 1fr);
+            }
         }
     </style>
 </head>
@@ -308,11 +356,11 @@
     <div class="container">
         <header>
             <h1>Tambola Game - Host</h1>
-            <p class="subtitle">Control the game and share the player link with participants</p>
+            <p class="subtitle">Control the game and manually call numbers</p>
             
             <div class="share-link">
                 <p>Share this link with players:</p>
-                <input type="text" id="playerLink" value="https://example.com/tambola/player.html" readonly>
+                <input type="text" id="playerLink" value="Loading..." readonly>
                 <button id="copyLink">Copy Link</button>
             </div>
         </header>
@@ -325,10 +373,14 @@
                     --
                 </div>
                 
+                <div class="manual-input">
+                    <input type="number" id="manualNumber" min="1" max="90" placeholder="Enter number (1-90)">
+                    <button id="callManual">Call Number</button>
+                </div>
+                
                 <div class="controls">
                     <button id="newGame">New Game</button>
-                    <button id="callNumber" disabled>Call Number</button>
-                    <button id="autoCall" disabled>Auto Call (5s)</button>
+                    <button id="autoCall">Auto Call (5s)</button>
                 </div>
                 
                 <h3 class="panel-title">Called Numbers</h3>
@@ -351,6 +403,11 @@
                 <div class="status-message" id="playersMessage">
                     No players joined yet
                 </div>
+                
+                <h3 class="panel-title">Number Grid</h3>
+                <div class="number-grid" id="numberGrid">
+                    <!-- Number grid will appear here -->
+                </div>
             </div>
         </div>
         
@@ -367,7 +424,7 @@
                 </div>
                 <div class="step">
                     <span class="step-number">3</span>
-                    <strong>Call Numbers:</strong> Use "Call Number" to manually call numbers or "Auto Call" for automatic calling every 5 seconds.
+                    <strong>Call Numbers Manually:</strong> Enter a number (1-90) and click "Call Number" or click on numbers in the grid.
                 </div>
                 <div class="step">
                     <span class="step-number">4</span>
@@ -402,19 +459,26 @@
         const playerCountEl = document.getElementById('playerCount');
         const playerLinkEl = document.getElementById('playerLink');
         const copyLinkBtn = document.getElementById('copyLink');
+        const manualNumberInput = document.getElementById('manualNumber');
+        const callManualBtn = document.getElementById('callManual');
+        const numberGridEl = document.getElementById('numberGrid');
         
         // Buttons
         const newGameBtn = document.getElementById('newGame');
-        const callNumberBtn = document.getElementById('callNumber');
         const autoCallBtn = document.getElementById('autoCall');
 
         // Initialize
         function init() {
             // Set up event listeners
             newGameBtn.addEventListener('click', startNewGame);
-            callNumberBtn.addEventListener('click', callNumber);
+            callManualBtn.addEventListener('click', callManualNumber);
             autoCallBtn.addEventListener('click', toggleAutoCall);
             copyLinkBtn.addEventListener('click', copyPlayerLink);
+            manualNumberInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    callManualNumber();
+                }
+            });
             
             // Set up speech synthesis
             if ('speechSynthesis' in window) {
@@ -426,11 +490,33 @@
                 hostMessageEl.textContent = "Voice announcements not supported in your browser. Game will work without voice.";
             }
             
-            // Set player link to current domain
-            playerLinkEl.value = window.location.origin + '/player.html';
+            // Set player link
+            const playerUrl = window.location.href.replace('host.html', 'player.html');
+            playerLinkEl.value = playerUrl;
             
-            // Simulate player updates (in a real app, this would come from a server)
-            setInterval(updatePlayerList, 2000);
+            // Create number grid
+            createNumberGrid();
+            
+            // Load any existing game state
+            loadGameState();
+        }
+
+        // Create number grid
+        function createNumberGrid() {
+            numberGridEl.innerHTML = '';
+            
+            for (let i = 1; i <= 90; i++) {
+                const numberEl = document.createElement('div');
+                numberEl.className = 'grid-number';
+                numberEl.textContent = i;
+                numberEl.addEventListener('click', () => {
+                    if (gameState.isGameActive && !gameState.calledNumbers.includes(i)) {
+                        manualNumberInput.value = i;
+                        callManualNumber();
+                    }
+                });
+                numberGridEl.appendChild(numberEl);
+            }
         }
 
         // Start a new game
@@ -446,9 +532,8 @@
             currentNumberEl.textContent = '--';
             
             // Update UI
-            callNumberBtn.disabled = false;
             autoCallBtn.disabled = false;
-            hostMessageEl.textContent = "Game started! Click 'Call Number' to begin.";
+            hostMessageEl.textContent = "Game started! Enter numbers manually to call them.";
             hostMessageEl.className = 'status-message';
             
             // Reset player messages
@@ -460,24 +545,37 @@
                 player.isWinner = false;
             });
             
+            // Update number grid
+            updateNumberGrid();
+            
             // Update player list
             updatePlayerList();
+            
+            // Save game state
+            saveGameState();
         }
 
-        // Call a new number
-        function callNumber() {
-            if (!gameState.isGameActive || gameState.numbers.length === 0) {
-                hostMessageEl.textContent = "Game over! All numbers have been called.";
-                hostMessageEl.className = 'status-message';
+        // Call a number manually
+        function callManualNumber() {
+            if (!gameState.isGameActive) {
+                hostMessageEl.textContent = "Please start a new game first!";
                 return;
             }
             
-            // Get random number from remaining numbers
-            const randomIndex = Math.floor(Math.random() * gameState.numbers.length);
-            const number = gameState.numbers[randomIndex];
+            const number = parseInt(manualNumberInput.value);
             
-            // Remove from available numbers and add to called numbers
-            gameState.numbers.splice(randomIndex, 1);
+            // Validate input
+            if (isNaN(number) || number < 1 || number > 90) {
+                hostMessageEl.textContent = "Please enter a valid number between 1 and 90";
+                return;
+            }
+            
+            if (gameState.calledNumbers.includes(number)) {
+                hostMessageEl.textContent = `Number ${number} has already been called!`;
+                return;
+            }
+            
+            // Add to called numbers
             gameState.calledNumbers.push(number);
             gameState.currentNumber = number;
             
@@ -499,13 +597,37 @@
             // Scroll called numbers to bottom
             calledNumbersEl.scrollTop = calledNumbersEl.scrollHeight;
             
+            // Clear input
+            manualNumberInput.value = '';
+            manualNumberInput.focus();
+            
+            // Update number grid
+            updateNumberGrid();
+            
+            // Save game state
+            saveGameState();
+            
             // Check if game is over
-            if (gameState.numbers.length === 0) {
+            if (gameState.calledNumbers.length >= 90) {
                 gameState.isGameActive = false;
-                callNumberBtn.disabled = true;
                 autoCallBtn.disabled = true;
                 hostMessageEl.textContent = "Game over! All numbers have been called.";
             }
+        }
+
+        // Update number grid
+        function updateNumberGrid() {
+            const numberElements = numberGridEl.querySelectorAll('.grid-number');
+            
+            numberElements.forEach(element => {
+                const number = parseInt(element.textContent);
+                
+                if (gameState.calledNumbers.includes(number)) {
+                    element.classList.add('called');
+                } else {
+                    element.classList.remove('called');
+                }
+            });
         }
 
         // Toggle auto call
@@ -516,10 +638,37 @@
                 autoCallBtn.textContent = 'Auto Call (5s)';
                 hostMessageEl.textContent = "Auto call stopped";
             } else {
-                gameState.autoCallInterval = setInterval(callNumber, 5000);
+                gameState.autoCallInterval = setInterval(callRandomNumber, 5000);
                 autoCallBtn.textContent = 'Stop Auto Call';
-                hostMessageEl.textContent = "Auto call started - numbers will be called every 5 seconds";
+                hostMessageEl.textContent = "Auto call started - random numbers will be called every 5 seconds";
             }
+        }
+
+        // Call a random number (for auto call)
+        function callRandomNumber() {
+            if (!gameState.isGameActive || gameState.numbers.length === 0) {
+                clearInterval(gameState.autoCallInterval);
+                gameState.autoCallInterval = null;
+                autoCallBtn.textContent = 'Auto Call (5s)';
+                return;
+            }
+            
+            // Get random number from remaining numbers
+            const availableNumbers = gameState.numbers.filter(n => !gameState.calledNumbers.includes(n));
+            
+            if (availableNumbers.length === 0) {
+                clearInterval(gameState.autoCallInterval);
+                gameState.autoCallInterval = null;
+                autoCallBtn.textContent = 'Auto Call (5s)';
+                return;
+            }
+            
+            const randomIndex = Math.floor(Math.random() * availableNumbers.length);
+            const number = availableNumbers[randomIndex];
+            
+            // Update UI
+            manualNumberInput.value = number;
+            callManualNumber();
         }
 
         // Update player list
@@ -639,6 +788,64 @@
             }, 2000);
         }
 
+        // Save game state to localStorage
+        function saveGameState() {
+            const stateToSave = {
+                calledNumbers: gameState.calledNumbers,
+                currentNumber: gameState.currentNumber,
+                isGameActive: gameState.isGameActive,
+                players: gameState.players
+            };
+            
+            localStorage.setItem('tambolaGameState', JSON.stringify(stateToSave));
+        }
+
+        // Load game state from localStorage
+        function loadGameState() {
+            const savedState = localStorage.getItem('tambolaGameState');
+            
+            if (savedState) {
+                const parsedState = JSON.parse(savedState);
+                
+                gameState.calledNumbers = parsedState.calledNumbers || [];
+                gameState.currentNumber = parsedState.currentNumber || null;
+                gameState.isGameActive = parsedState.isGameActive || false;
+                gameState.players = parsedState.players || [];
+                
+                // Update UI with loaded state
+                updateUIFromState();
+            }
+        }
+
+        // Update UI from game state
+        function updateUIFromState() {
+            // Update current number
+            currentNumberEl.textContent = gameState.currentNumber || '--';
+            
+            // Update called numbers
+            calledNumbersEl.innerHTML = '';
+            gameState.calledNumbers.forEach(number => {
+                const numberEl = document.createElement('div');
+                numberEl.className = 'number';
+                numberEl.textContent = number;
+                calledNumbersEl.appendChild(numberEl);
+            });
+            
+            // Update number grid
+            updateNumberGrid();
+            
+            // Update player list
+            updatePlayerList();
+            
+            // Update game status
+            if (gameState.isGameActive) {
+                hostMessageEl.textContent = "Game in progress. Continue calling numbers.";
+                autoCallBtn.disabled = false;
+            } else if (gameState.calledNumbers.length > 0) {
+                hostMessageEl.textContent = "Game finished. Start a new game to continue.";
+            }
+        }
+
         // Simulate player data (in a real app, this would come from a server)
         function simulatePlayers() {
             const playerNames = ['Alice', 'Bob', 'Charlie', 'Diana', 'Eve', 'Frank', 'Grace', 'Henry'];
@@ -654,6 +861,7 @@
                 
                 playersMessageEl.textContent = `${name} joined the game!`;
                 updatePlayerList();
+                saveGameState();
             }
         }
 
