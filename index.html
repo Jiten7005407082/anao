@@ -1,142 +1,748 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Mini Tambola Hosted</title>
-<style>
-body {font-family: Arial, sans-serif; background:#071427; color:#e6eef6; margin:0; padding:0;}
-.wrap {max-width:1000px; margin:20px auto; padding:20px;}
-header {display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;}
-.card {background:rgba(11,19,32,0.9); padding:20px; border-radius:12px; margin-bottom:20px;}
-.ticket-grid {display:grid; grid-template-columns:repeat(9,1fr); gap:4px; margin-top:10px;}
-.cell {height:40px; display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,0.05); border-radius:6px; font-weight:bold;}
-.called {background:#ffd166; color:#071427;}
-.chip {display:inline-block; background:rgba(255,255,255,0.1); padding:4px 6px; margin:2px; border-radius:6px; font-weight:bold;}
-button {padding:8px 12px; margin:4px; border:none; border-radius:8px; cursor:pointer; font-weight:bold;}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tambola Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+            color: white;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        h1 {
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .game-area {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .host-panel {
+            flex: 1;
+            min-width: 300px;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .player-panel {
+            flex: 2;
+            min-width: 400px;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .panel-title {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .current-number {
+            text-align: center;
+            font-size: 6rem;
+            font-weight: bold;
+            margin: 20px 0;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.7);
+            height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+        }
+        
+        .called-numbers {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 20px;
+            max-height: 200px;
+            overflow-y: auto;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+        }
+        
+        .number {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            font-weight: bold;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        
+        button {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            background: #4a90e2;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            flex: 1;
+            min-width: 120px;
+        }
+        
+        button:hover {
+            background: #3a7bc8;
+            transform: translateY(-2px);
+        }
+        
+        button:active {
+            transform: translateY(1px);
+        }
+        
+        button:disabled {
+            background: #555;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        #newGame {
+            background: #e74c3c;
+        }
+        
+        #newGame:hover {
+            background: #c0392b;
+        }
+        
+        #callNumber {
+            background: #2ecc71;
+        }
+        
+        #callNumber:hover {
+            background: #27ae60;
+        }
+        
+        .tambola-board {
+            display: grid;
+            grid-template-columns: repeat(9, 1fr);
+            gap: 5px;
+            margin-top: 20px;
+        }
+        
+        .board-cell {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .board-cell:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .board-cell.marked {
+            background: #e74c3c;
+            color: white;
+        }
+        
+        .board-cell.free {
+            background: #2ecc71;
+            color: white;
+        }
+        
+        .player-controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .player-list {
+            margin-top: 20px;
+            max-height: 200px;
+            overflow-y: auto;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            padding: 10px;
+        }
+        
+        .player-item {
+            padding: 8px;
+            margin-bottom: 5px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .status-message {
+            text-align: center;
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 5px;
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .winning-message {
+            background: rgba(46, 204, 113, 0.3);
+            font-weight: bold;
+        }
+        
+        @media (max-width: 768px) {
+            .game-area {
+                flex-direction: column;
+            }
+            
+            .host-panel, .player-panel {
+                min-width: 100%;
+            }
+            
+            .current-number {
+                font-size: 4rem;
+                height: 100px;
+            }
+        }
+    </style>
 </head>
 <body>
-<div class="wrap">
-<header>
-<h1>Mini Tambola Host</h1>
-<div>Static hosted, multi-player tickets, GB voice announce</div>
-</header>
-<div class="card">
-<label>Room Code: <input type="text" id="roomCode" value="ROOM123"/></label>
-<div style="margin-top:10px;">
-<button id="startGame">Start Game</button>
-<button id="callNext" disabled>Call Next Number</button>
-<button id="resetCalled">Reset Called</button>
-</div>
-<div style="margin-top:10px;">Called Numbers:</div>
-<div id="calledList"></div>
-<div style="margin-top:10px;">Last Called: <span id="lastCalled">—</span></div>
-</div>
+    <div class="container">
+        <header>
+            <h1>Tambola Game</h1>
+            <p class="subtitle">Single Host & Multiplayer - Enjoy the classic game with voice announcements!</p>
+        </header>
+        
+        <div class="game-area">
+            <div class="host-panel">
+                <h2 class="panel-title">Host Controls</h2>
+                
+                <div class="current-number" id="currentNumber">
+                    --
+                </div>
+                
+                <div class="controls">
+                    <button id="newGame">New Game</button>
+                    <button id="callNumber" disabled>Call Number</button>
+                    <button id="autoCall" disabled>Auto Call (5s)</button>
+                </div>
+                
+                <div class="called-numbers" id="calledNumbers">
+                    <!-- Called numbers will appear here -->
+                </div>
+                
+                <div class="status-message" id="hostMessage">
+                    Start a new game to begin!
+                </div>
+            </div>
+            
+            <div class="player-panel">
+                <h2 class="panel-title">Player Board</h2>
+                
+                <div class="player-controls">
+                    <input type="text" id="playerName" placeholder="Enter your name">
+                    <button id="joinGame">Join Game</button>
+                    <button id="newTicket">New Ticket</button>
+                </div>
+                
+                <div class="tambola-board" id="tambolaBoard">
+                    <!-- Player board will be generated here -->
+                </div>
+                
+                <div class="status-message" id="playerMessage">
+                    Join the game and get your ticket!
+                </div>
+                
+                <h3 class="panel-title">Players</h3>
+                <div class="player-list" id="playerList">
+                    <!-- Player list will appear here -->
+                </div>
+            </div>
+        </div>
+    </div>
 
-<div class="card">
-<label>Ticket:</label>
-<div id="ticketGrid" class="ticket-grid"></div>
-<button id="generateTicket">Generate Ticket</button>
-</div>
-</div>
-
-<script>
-// Initialize game state
-const gameState = {room:'', started:false, called:[], ticket:[]};
-let voices = [];
-
-// Load voices properly
-function loadVoices(callback){
-    voices = speechSynthesis.getVoices();
-    if(voices.length > 0){
-        callback();
-    } else {
-        speechSynthesis.onvoiceschanged = () => {
-            voices = speechSynthesis.getVoices();
-            callback();
+    <script>
+        // Game state
+        const gameState = {
+            numbers: Array.from({length: 90}, (_, i) => i + 1),
+            calledNumbers: [],
+            currentNumber: null,
+            isGameActive: false,
+            players: [],
+            autoCallInterval: null,
+            speechEnabled: true
         };
-    }
-}
 
-// Speech function
-function speakText(txt){
-    if(!voices || voices.length===0) return;
-    const chosen = voices.find(v=>v.lang.toLowerCase().startsWith('en-gb')) || voices[0];
-    const utter = new SpeechSynthesisUtterance(txt);
-    utter.voice = chosen;
-    utter.rate = 0.95;
-    speechSynthesis.speak(utter);
-}
+        // DOM elements
+        const currentNumberEl = document.getElementById('currentNumber');
+        const calledNumbersEl = document.getElementById('calledNumbers');
+        const tambolaBoardEl = document.getElementById('tambolaBoard');
+        const playerListEl = document.getElementById('playerList');
+        const hostMessageEl = document.getElementById('hostMessage');
+        const playerMessageEl = document.getElementById('playerMessage');
+        
+        // Buttons
+        const newGameBtn = document.getElementById('newGame');
+        const callNumberBtn = document.getElementById('callNumber');
+        const autoCallBtn = document.getElementById('autoCall');
+        const joinGameBtn = document.getElementById('joinGame');
+        const newTicketBtn = document.getElementById('newTicket');
+        const playerNameInput = document.getElementById('playerName');
 
-// Utility: generate simple 3x9 ticket
-function generateTicket(){
-    const numbers = Array.from({length:90},(_,i)=>i+1);
-    const ticket=[];
-    for(let r=0;r<3;r++){
-        const row=[];
-        for(let c=0;c<9;c++){
-            if(Math.random()<0.3){
-                const idx=Math.floor(Math.random()*numbers.length);
-                row.push(numbers.splice(idx,1)[0]);
-            } else {row.push('');}
+        // Initialize
+        function init() {
+            // Generate initial player board
+            generatePlayerBoard();
+            
+            // Set up event listeners
+            newGameBtn.addEventListener('click', startNewGame);
+            callNumberBtn.addEventListener('click', callNumber);
+            autoCallBtn.addEventListener('click', toggleAutoCall);
+            joinGameBtn.addEventListener('click', joinGame);
+            newTicketBtn.addEventListener('click', generatePlayerBoard);
+            
+            // Set up speech synthesis
+            if ('speechSynthesis' in window) {
+                console.log("Speech synthesis supported");
+            } else {
+                console.log("Speech synthesis not supported");
+                gameState.speechEnabled = false;
+                hostMessageEl.textContent = "Voice announcements not supported in your browser";
+            }
         }
-        ticket.push(row);
-    }
-    gameState.ticket=ticket;
-    renderTicket();
-}
 
-function renderTicket(){
-    const grid=document.getElementById('ticketGrid');
-    grid.innerHTML='';
-    gameState.ticket.forEach(row=>row.forEach(num=>{
-        const div=document.createElement('div');
-        div.className='cell';
-        div.textContent=num || '';
-        grid.appendChild(div);
-    }));
-}
+        // Start a new game
+        function startNewGame() {
+            // Reset game state
+            gameState.numbers = Array.from({length: 90}, (_, i) => i + 1);
+            gameState.calledNumbers = [];
+            gameState.currentNumber = null;
+            gameState.isGameActive = true;
+            
+            // Clear called numbers display
+            calledNumbersEl.innerHTML = '';
+            currentNumberEl.textContent = '--';
+            
+            // Update UI
+            callNumberBtn.disabled = false;
+            autoCallBtn.disabled = false;
+            hostMessageEl.textContent = "Game started! Click 'Call Number' to begin.";
+            hostMessageEl.className = 'status-message';
+            
+            // Reset player messages
+            playerMessageEl.textContent = "Game has started! Mark your numbers.";
+            playerMessageEl.className = 'status-message';
+            
+            // Generate new tickets for all players
+            gameState.players.forEach(player => {
+                player.ticket = generateTicket();
+            });
+            
+            // Update player boards
+            updatePlayerBoard();
+        }
 
-// Start Game button
-document.getElementById('startGame').addEventListener('click',()=>{
-    loadVoices(()=>{
-        gameState.room = document.getElementById('roomCode').value || 'ROOM123';
-        gameState.started = true;
-        gameState.called = [];
-        document.getElementById('calledList').innerHTML='';
-        document.getElementById('lastCalled').textContent='—';
-        document.getElementById('callNext').disabled=false;
-        speakText('Game started for room ' + gameState.room);
-    });
-});
+        // Call a new number
+        function callNumber() {
+            if (!gameState.isGameActive || gameState.numbers.length === 0) {
+                hostMessageEl.textContent = "Game over! All numbers have been called.";
+                hostMessageEl.className = 'status-message';
+                return;
+            }
+            
+            // Get random number from remaining numbers
+            const randomIndex = Math.floor(Math.random() * gameState.numbers.length);
+            const number = gameState.numbers[randomIndex];
+            
+            // Remove from available numbers and add to called numbers
+            gameState.numbers.splice(randomIndex, 1);
+            gameState.calledNumbers.push(number);
+            gameState.currentNumber = number;
+            
+            // Update UI
+            currentNumberEl.textContent = number;
+            
+            // Add to called numbers display
+            const numberEl = document.createElement('div');
+            numberEl.className = 'number';
+            numberEl.textContent = number;
+            calledNumbersEl.appendChild(numberEl);
+            
+            // Announce number with voice
+            announceNumber(number);
+            
+            // Check for winners
+            checkWinners();
+            
+            // Scroll called numbers to bottom
+            calledNumbersEl.scrollTop = calledNumbersEl.scrollHeight;
+            
+            // Update player boards
+            updatePlayerBoard();
+            
+            // Check if game is over
+            if (gameState.numbers.length === 0) {
+                gameState.isGameActive = false;
+                callNumberBtn.disabled = true;
+                autoCallBtn.disabled = true;
+                hostMessageEl.textContent = "Game over! All numbers have been called.";
+            }
+        }
 
-// Call Next Number
-document.getElementById('callNext').addEventListener('click',()=>{
-    if(!gameState.started){alert('Start the game first!'); return;}
-    const remaining = Array.from({length:90},(_,i)=>i+1).filter(n=>!gameState.called.includes(n));
-    if(remaining.length===0){alert('All numbers called!'); return;}
-    const next=remaining[Math.floor(Math.random()*remaining.length)];
-    gameState.called.push(next);
-    document.getElementById('lastCalled').textContent=next;
-    document.getElementById('calledList').innerHTML=gameState.called.map(n=>`<span class="chip">${n}</span>`).join('');
-    speakText('Number ' + next);
-});
+        // Toggle auto call
+        function toggleAutoCall() {
+            if (gameState.autoCallInterval) {
+                clearInterval(gameState.autoCallInterval);
+                gameState.autoCallInterval = null;
+                autoCallBtn.textContent = 'Auto Call (5s)';
+                hostMessageEl.textContent = "Auto call stopped";
+            } else {
+                gameState.autoCallInterval = setInterval(callNumber, 5000);
+                autoCallBtn.textContent = 'Stop Auto Call';
+                hostMessageEl.textContent = "Auto call started - numbers will be called every 5 seconds";
+            }
+        }
 
-// Reset called numbers
-document.getElementById('resetCalled').addEventListener('click',()=>{
-    gameState.called=[];
-    document.getElementById('calledList').innerHTML='';
-    document.getElementById('lastCalled').textContent='—';
-});
+        // Generate a Tambola ticket
+        function generateTicket() {
+            // Tambola ticket has 3 rows and 9 columns, with 5 numbers in each row
+            const ticket = Array(3).fill().map(() => Array(9).fill(null));
+            
+            // For each column, determine how many numbers to include (1-3)
+            const colCounts = Array(9).fill(0);
+            let numbersAdded = 0;
+            
+            // First, ensure each column has at least one number
+            for (let col = 0; col < 9; col++) {
+                const row = Math.floor(Math.random() * 3);
+                ticket[row][col] = getRandomNumberForColumn(col);
+                colCounts[col]++;
+                numbersAdded++;
+            }
+            
+            // Add remaining numbers (total should be 15)
+            while (numbersAdded < 15) {
+                const col = Math.floor(Math.random() * 9);
+                if (colCounts[col] < 3) {
+                    // Find an empty row in this column
+                    const emptyRows = [];
+                    for (let row = 0; row < 3; row++) {
+                        if (ticket[row][col] === null) {
+                            emptyRows.push(row);
+                        }
+                    }
+                    
+                    if (emptyRows.length > 0) {
+                        const row = emptyRows[Math.floor(Math.random() * emptyRows.length)];
+                        ticket[row][col] = getRandomNumberForColumn(col);
+                        colCounts[col]++;
+                        numbersAdded++;
+                    }
+                }
+            }
+            
+            // Sort numbers in each column
+            for (let col = 0; col < 9; col++) {
+                const colNumbers = [];
+                for (let row = 0; row < 3; row++) {
+                    if (ticket[row][col] !== null) {
+                        colNumbers.push(ticket[row][col]);
+                    }
+                }
+                
+                colNumbers.sort((a, b) => a - b);
+                
+                let index = 0;
+                for (let row = 0; row < 3; row++) {
+                    if (ticket[row][col] !== null) {
+                        ticket[row][col] = colNumbers[index];
+                        index++;
+                    }
+                }
+            }
+            
+            return ticket;
+        }
 
-// Generate ticket button
-document.getElementById('generateTicket').addEventListener('click',()=>{
-    generateTicket();
-});
+        // Get a random number for a specific column
+        function getRandomNumberForColumn(col) {
+            const min = col * 10 + 1;
+            const max = col === 8 ? 90 : (col + 1) * 10;
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
 
-// Generate initial ticket
-generateTicket();
-</script>
+        // Generate player board
+        function generatePlayerBoard() {
+            // Clear existing board
+            tambolaBoardEl.innerHTML = '';
+            
+            // Create column headers
+            for (let i = 1; i <= 9; i++) {
+                const headerCell = document.createElement('div');
+                headerCell.className = 'board-cell';
+                headerCell.textContent = i;
+                headerCell.style.background = 'rgba(255, 255, 255, 0.2)';
+                tambolaBoardEl.appendChild(headerCell);
+            }
+            
+            // Get or create player ticket
+            let player = gameState.players.find(p => p.name === playerNameInput.value);
+            if (!player) {
+                player = {
+                    name: playerNameInput.value || 'Player',
+                    ticket: generateTicket(),
+                    isWinner: false
+                };
+                gameState.players.push(player);
+                updatePlayerList();
+            } else {
+                player.ticket = generateTicket();
+            }
+            
+            // Create ticket cells
+            for (let row = 0; row < 3; row++) {
+                for (let col = 0; col < 9; col++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'board-cell';
+                    
+                    if (player.ticket[row][col] !== null) {
+                        cell.textContent = player.ticket[row][col];
+                        
+                        // Mark if number has been called
+                        if (gameState.calledNumbers.includes(player.ticket[row][col])) {
+                            cell.classList.add('marked');
+                        }
+                        
+                        // Add click event to mark/unmark
+                        cell.addEventListener('click', () => {
+                            if (gameState.calledNumbers.includes(player.ticket[row][col])) {
+                                cell.classList.toggle('marked');
+                            }
+                        });
+                    } else {
+                        cell.classList.add('free');
+                        cell.textContent = 'FREE';
+                    }
+                    
+                    tambolaBoardEl.appendChild(cell);
+                }
+            }
+            
+            playerMessageEl.textContent = "New ticket generated!";
+        }
+
+        // Update player board with current called numbers
+        function updatePlayerBoard() {
+            const cells = tambolaBoardEl.querySelectorAll('.board-cell');
+            let player = gameState.players.find(p => p.name === (playerNameInput.value || 'Player'));
+            
+            if (!player) return;
+            
+            let index = 9; // Skip headers
+            for (let row = 0; row < 3; row++) {
+                for (let col = 0; col < 9; col++) {
+                    const cell = cells[index];
+                    if (player.ticket[row][col] !== null) {
+                        if (gameState.calledNumbers.includes(player.ticket[row][col])) {
+                            cell.classList.add('marked');
+                        } else {
+                            cell.classList.remove('marked');
+                        }
+                    }
+                    index++;
+                }
+            }
+        }
+
+        // Update player list
+        function updatePlayerList() {
+            playerListEl.innerHTML = '';
+            gameState.players.forEach(player => {
+                const playerItem = document.createElement('div');
+                playerItem.className = 'player-item';
+                playerItem.textContent = player.name;
+                
+                if (player.isWinner) {
+                    const winnerBadge = document.createElement('span');
+                    winnerBadge.textContent = 'WINNER!';
+                    winnerBadge.style.color = '#2ecc71';
+                    winnerBadge.style.fontWeight = 'bold';
+                    playerItem.appendChild(winnerBadge);
+                }
+                
+                playerListEl.appendChild(playerItem);
+            });
+        }
+
+        // Join game as player
+        function joinGame() {
+            const name = playerNameInput.value.trim();
+            if (!name) {
+                playerMessageEl.textContent = "Please enter your name to join the game";
+                return;
+            }
+            
+            // Check if player already exists
+            let player = gameState.players.find(p => p.name === name);
+            if (!player) {
+                player = {
+                    name: name,
+                    ticket: generateTicket(),
+                    isWinner: false
+                };
+                gameState.players.push(player);
+                updatePlayerList();
+            }
+            
+            // Generate board for this player
+            generatePlayerBoard();
+            playerMessageEl.textContent = `Welcome ${name}! You've joined the game.`;
+        }
+
+        // Check for winners
+        function checkWinners() {
+            let hasWinner = false;
+            
+            gameState.players.forEach(player => {
+                if (player.isWinner) return; // Skip if already a winner
+                
+                // Check for winning patterns
+                if (checkFullHouse(player.ticket) || 
+                    checkEarlyFive(player.ticket) || 
+                    checkTopLine(player.ticket)) {
+                    player.isWinner = true;
+                    hasWinner = true;
+                    
+                    // Announce winner
+                    announceWinner(player.name);
+                    
+                    // Update UI
+                    playerMessageEl.textContent = `${player.name} is a WINNER!`;
+                    playerMessageEl.className = 'status-message winning-message';
+                    
+                    hostMessageEl.textContent = `${player.name} has won the game!`;
+                    hostMessageEl.className = 'status-message winning-message';
+                }
+            });
+            
+            if (hasWinner) {
+                updatePlayerList();
+            }
+            
+            return hasWinner;
+        }
+
+        // Check for full house (all numbers marked)
+        function checkFullHouse(ticket) {
+            for (let row = 0; row < 3; row++) {
+                for (let col = 0; col < 9; col++) {
+                    if (ticket[row][col] !== null && 
+                        !gameState.calledNumbers.includes(ticket[row][col])) {
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
+
+        // Check for early five (first five numbers marked)
+        function checkEarlyFive(ticket) {
+            let markedCount = 0;
+            for (let row = 0; row < 3; row++) {
+                for (let col = 0; col < 9; col++) {
+                    if (ticket[row][col] !== null && 
+                        gameState.calledNumbers.includes(ticket[row][col])) {
+                        markedCount++;
+                        if (markedCount >= 5) return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        // Check for top line (all numbers in first row marked)
+        function checkTopLine(ticket) {
+            for (let col = 0; col < 9; col++) {
+                if (ticket[0][col] !== null && 
+                    !gameState.calledNumbers.includes(ticket[0][col])) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        // Announce number with voice
+        function announceNumber(number) {
+            if (!gameState.speechEnabled) return;
+            
+            const speech = new SpeechSynthesisUtterance();
+            speech.text = `Number ${number}`;
+            speech.volume = 1;
+            speech.rate = 0.9;
+            speech.pitch = 1;
+            
+            window.speechSynthesis.speak(speech);
+        }
+
+        // Announce winner with voice
+        function announceWinner(playerName) {
+            if (!gameState.speechEnabled) return;
+            
+            const speech = new SpeechSynthesisUtterance();
+            speech.text = `We have a winner! Congratulations ${playerName}!`;
+            speech.volume = 1;
+            speech.rate = 0.9;
+            speech.pitch = 1;
+            
+            window.speechSynthesis.speak(speech);
+        }
+
+        // Initialize the game when page loads
+        window.addEventListener('DOMContentLoaded', init);
+    </script>
 </body>
 </html>
