@@ -368,8 +368,11 @@
             joinGameBtn.addEventListener('click', joinGame);
             addTicketBtn.addEventListener('click', addTicket);
             
-            // Simulate game updates (in a real app, this would come from a server)
-            setInterval(updateGameState, 1000);
+            // Check for game updates every 2 seconds
+            setInterval(checkForGameUpdates, 2000);
+            
+            // Load initial game state
+            loadGameState();
         }
 
         // Join game as player
@@ -581,42 +584,54 @@
             });
         }
 
-        // Update game state (simulated)
-        function updateGameState() {
-            // In a real app, this would fetch data from the server
-            // For simulation, we'll randomly update the game state
+        // Check for game updates from host
+        function checkForGameUpdates() {
+            const savedState = localStorage.getItem('tambolaGameState');
             
-            // Simulate game starting
-            if (Math.random() < 0.1 && !playerState.gameActive) {
-                playerState.gameActive = true;
+            if (savedState) {
+                const parsedState = JSON.parse(savedState);
+                
+                // Update player state
+                playerState.calledNumbers = parsedState.calledNumbers || [];
+                playerState.currentNumber = parsedState.currentNumber || null;
+                playerState.gameActive = parsedState.isGameActive || false;
+                
+                // Update UI
+                updatePlayerUI();
+            }
+        }
+
+        // Update player UI based on game state
+        function updatePlayerUI() {
+            // Update current number
+            currentNumberEl.textContent = playerState.currentNumber || '--';
+            
+            // Update called numbers display
+            updateCalledNumbers();
+            
+            // Update game status
+            if (playerState.gameActive) {
                 gameStateEl.textContent = 'Active';
                 gameStatusEl.textContent = 'Game in progress';
-                playerMessageEl.textContent = 'Game has started! Mark your numbers.';
-            }
-            
-            // Simulate number being called
-            if (playerState.gameActive && Math.random() < 0.3) {
-                const newNumber = Math.floor(Math.random() * 90) + 1;
-                if (!playerState.calledNumbers.includes(newNumber)) {
-                    playerState.calledNumbers.push(newNumber);
-                    playerState.currentNumber = newNumber;
-                    
-                    // Update UI
-                    currentNumberEl.textContent = newNumber;
-                    updateCalledNumbers();
-                    
-                    // Update player tickets
-                    renderPlayerTickets();
+                
+                if (playerState.isJoined) {
+                    playerMessageEl.textContent = 'Game in progress! Mark your numbers.';
                 }
-            }
-            
-            // Simulate game ending
-            if (playerState.gameActive && playerState.calledNumbers.length >= 75 && Math.random() < 0.05) {
-                playerState.gameActive = false;
+            } else if (playerState.calledNumbers.length > 0) {
                 gameStateEl.textContent = 'Finished';
                 gameStatusEl.textContent = 'Game finished';
-                playerMessageEl.textContent = 'Game over! Thanks for playing.';
-                playerMessageEl.className = 'status-message winning-message';
+                
+                if (playerState.isJoined) {
+                    playerMessageEl.textContent = 'Game over! Thanks for playing.';
+                }
+            } else {
+                gameStateEl.textContent = 'Waiting';
+                gameStatusEl.textContent = 'Waiting for host to start the game';
+            }
+            
+            // Update player tickets
+            if (playerState.isJoined) {
+                renderPlayerTickets();
             }
         }
 
@@ -637,6 +652,21 @@
         // Update ticket count
         function updateTicketCount() {
             ticketCountEl.textContent = playerState.tickets.length;
+        }
+
+        // Load initial game state
+        function loadGameState() {
+            const savedState = localStorage.getItem('tambolaGameState');
+            
+            if (savedState) {
+                const parsedState = JSON.parse(savedState);
+                
+                playerState.calledNumbers = parsedState.calledNumbers || [];
+                playerState.currentNumber = parsedState.currentNumber || null;
+                playerState.gameActive = parsedState.isGameActive || false;
+                
+                updatePlayerUI();
+            }
         }
 
         // Initialize the game when page loads
