@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tambola Game</title>
+    <title>Tambola Game - Multiple Tickets</title>
     <style>
         * {
             margin: 0;
@@ -20,7 +20,7 @@
         }
         
         .container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
         }
         
@@ -62,7 +62,7 @@
         
         .player-panel {
             flex: 2;
-            min-width: 400px;
+            min-width: 500px;
             background: rgba(0, 0, 0, 0.4);
             border-radius: 15px;
             padding: 20px;
@@ -164,11 +164,56 @@
             background: #27ae60;
         }
         
+        .tickets-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-top: 20px;
+            max-height: 500px;
+            overflow-y: auto;
+            padding: 10px;
+        }
+        
+        .ticket {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+            min-width: 300px;
+        }
+        
+        .ticket-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .ticket-title {
+            font-weight: bold;
+        }
+        
+        .ticket-actions {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .ticket-btn {
+            padding: 4px 8px;
+            font-size: 0.8rem;
+            min-width: auto;
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .ticket-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
         .tambola-board {
             display: grid;
             grid-template-columns: repeat(9, 1fr);
-            gap: 5px;
-            margin-top: 20px;
+            gap: 4px;
         }
         
         .board-cell {
@@ -177,10 +222,11 @@
             align-items: center;
             justify-content: center;
             background: rgba(255, 255, 255, 0.1);
-            border-radius: 5px;
+            border-radius: 4px;
             font-weight: bold;
             cursor: pointer;
             transition: all 0.2s;
+            font-size: 0.9rem;
         }
         
         .board-cell:hover {
@@ -201,6 +247,7 @@
             display: flex;
             gap: 10px;
             margin-top: 20px;
+            flex-wrap: wrap;
         }
         
         .player-list {
@@ -234,6 +281,27 @@
             font-weight: bold;
         }
         
+        .ticket-counter {
+            display: inline-block;
+            background: #e74c3c;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            text-align: center;
+            line-height: 24px;
+            font-size: 0.8rem;
+            margin-left: 5px;
+        }
+        
+        input[type="text"] {
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.9);
+            flex: 1;
+            min-width: 150px;
+        }
+        
         @media (max-width: 768px) {
             .game-area {
                 flex-direction: column;
@@ -247,6 +315,10 @@
                 font-size: 4rem;
                 height: 100px;
             }
+            
+            .tickets-container {
+                justify-content: center;
+            }
         }
     </style>
 </head>
@@ -254,7 +326,7 @@
     <div class="container">
         <header>
             <h1>Tambola Game</h1>
-            <p class="subtitle">Single Host & Multiplayer - Enjoy the classic game with voice announcements!</p>
+            <p class="subtitle">Single Host & Multiplayer - Book up to 6 tickets per player!</p>
         </header>
         
         <div class="game-area">
@@ -286,18 +358,18 @@
                 <div class="player-controls">
                     <input type="text" id="playerName" placeholder="Enter your name">
                     <button id="joinGame">Join Game</button>
-                    <button id="newTicket">New Ticket</button>
+                    <button id="addTicket" disabled>Add Ticket</button>
                 </div>
                 
-                <div class="tambola-board" id="tambolaBoard">
-                    <!-- Player board will be generated here -->
+                <div class="tickets-container" id="ticketsContainer">
+                    <!-- Player tickets will appear here -->
                 </div>
                 
                 <div class="status-message" id="playerMessage">
-                    Join the game and get your ticket!
+                    Join the game and get your first ticket!
                 </div>
                 
-                <h3 class="panel-title">Players</h3>
+                <h3 class="panel-title">Players <span id="playerCount" class="ticket-counter">0</span></h3>
                 <div class="player-list" id="playerList">
                     <!-- Player list will appear here -->
                 </div>
@@ -320,30 +392,28 @@
         // DOM elements
         const currentNumberEl = document.getElementById('currentNumber');
         const calledNumbersEl = document.getElementById('calledNumbers');
-        const tambolaBoardEl = document.getElementById('tambolaBoard');
+        const ticketsContainerEl = document.getElementById('ticketsContainer');
         const playerListEl = document.getElementById('playerList');
         const hostMessageEl = document.getElementById('hostMessage');
         const playerMessageEl = document.getElementById('playerMessage');
+        const playerCountEl = document.getElementById('playerCount');
         
         // Buttons
         const newGameBtn = document.getElementById('newGame');
         const callNumberBtn = document.getElementById('callNumber');
         const autoCallBtn = document.getElementById('autoCall');
         const joinGameBtn = document.getElementById('joinGame');
-        const newTicketBtn = document.getElementById('newTicket');
+        const addTicketBtn = document.getElementById('addTicket');
         const playerNameInput = document.getElementById('playerName');
 
         // Initialize
         function init() {
-            // Generate initial player board
-            generatePlayerBoard();
-            
             // Set up event listeners
             newGameBtn.addEventListener('click', startNewGame);
             callNumberBtn.addEventListener('click', callNumber);
             autoCallBtn.addEventListener('click', toggleAutoCall);
             joinGameBtn.addEventListener('click', joinGame);
-            newTicketBtn.addEventListener('click', generatePlayerBoard);
+            addTicketBtn.addEventListener('click', addTicket);
             
             // Set up speech synthesis
             if ('speechSynthesis' in window) {
@@ -379,11 +449,13 @@
             
             // Generate new tickets for all players
             gameState.players.forEach(player => {
-                player.ticket = generateTicket();
+                player.tickets = [generateTicket()];
+                player.isWinner = false;
             });
             
             // Update player boards
-            updatePlayerBoard();
+            updateAllPlayerTickets();
+            updatePlayerList();
         }
 
         // Call a new number
@@ -422,7 +494,7 @@
             calledNumbersEl.scrollTop = calledNumbersEl.scrollHeight;
             
             // Update player boards
-            updatePlayerBoard();
+            updateAllPlayerTickets();
             
             // Check if game is over
             if (gameState.numbers.length === 0) {
@@ -515,109 +587,6 @@
             return Math.floor(Math.random() * (max - min + 1)) + min;
         }
 
-        // Generate player board
-        function generatePlayerBoard() {
-            // Clear existing board
-            tambolaBoardEl.innerHTML = '';
-            
-            // Create column headers
-            for (let i = 1; i <= 9; i++) {
-                const headerCell = document.createElement('div');
-                headerCell.className = 'board-cell';
-                headerCell.textContent = i;
-                headerCell.style.background = 'rgba(255, 255, 255, 0.2)';
-                tambolaBoardEl.appendChild(headerCell);
-            }
-            
-            // Get or create player ticket
-            let player = gameState.players.find(p => p.name === playerNameInput.value);
-            if (!player) {
-                player = {
-                    name: playerNameInput.value || 'Player',
-                    ticket: generateTicket(),
-                    isWinner: false
-                };
-                gameState.players.push(player);
-                updatePlayerList();
-            } else {
-                player.ticket = generateTicket();
-            }
-            
-            // Create ticket cells
-            for (let row = 0; row < 3; row++) {
-                for (let col = 0; col < 9; col++) {
-                    const cell = document.createElement('div');
-                    cell.className = 'board-cell';
-                    
-                    if (player.ticket[row][col] !== null) {
-                        cell.textContent = player.ticket[row][col];
-                        
-                        // Mark if number has been called
-                        if (gameState.calledNumbers.includes(player.ticket[row][col])) {
-                            cell.classList.add('marked');
-                        }
-                        
-                        // Add click event to mark/unmark
-                        cell.addEventListener('click', () => {
-                            if (gameState.calledNumbers.includes(player.ticket[row][col])) {
-                                cell.classList.toggle('marked');
-                            }
-                        });
-                    } else {
-                        cell.classList.add('free');
-                        cell.textContent = 'FREE';
-                    }
-                    
-                    tambolaBoardEl.appendChild(cell);
-                }
-            }
-            
-            playerMessageEl.textContent = "New ticket generated!";
-        }
-
-        // Update player board with current called numbers
-        function updatePlayerBoard() {
-            const cells = tambolaBoardEl.querySelectorAll('.board-cell');
-            let player = gameState.players.find(p => p.name === (playerNameInput.value || 'Player'));
-            
-            if (!player) return;
-            
-            let index = 9; // Skip headers
-            for (let row = 0; row < 3; row++) {
-                for (let col = 0; col < 9; col++) {
-                    const cell = cells[index];
-                    if (player.ticket[row][col] !== null) {
-                        if (gameState.calledNumbers.includes(player.ticket[row][col])) {
-                            cell.classList.add('marked');
-                        } else {
-                            cell.classList.remove('marked');
-                        }
-                    }
-                    index++;
-                }
-            }
-        }
-
-        // Update player list
-        function updatePlayerList() {
-            playerListEl.innerHTML = '';
-            gameState.players.forEach(player => {
-                const playerItem = document.createElement('div');
-                playerItem.className = 'player-item';
-                playerItem.textContent = player.name;
-                
-                if (player.isWinner) {
-                    const winnerBadge = document.createElement('span');
-                    winnerBadge.textContent = 'WINNER!';
-                    winnerBadge.style.color = '#2ecc71';
-                    winnerBadge.style.fontWeight = 'bold';
-                    playerItem.appendChild(winnerBadge);
-                }
-                
-                playerListEl.appendChild(playerItem);
-            });
-        }
-
         // Join game as player
         function joinGame() {
             const name = playerNameInput.value.trim();
@@ -631,7 +600,7 @@
             if (!player) {
                 player = {
                     name: name,
-                    ticket: generateTicket(),
+                    tickets: [generateTicket()],
                     isWinner: false
                 };
                 gameState.players.push(player);
@@ -639,8 +608,172 @@
             }
             
             // Generate board for this player
-            generatePlayerBoard();
-            playerMessageEl.textContent = `Welcome ${name}! You've joined the game.`;
+            renderPlayerTickets(player);
+            playerMessageEl.textContent = `Welcome ${name}! You've joined the game with 1 ticket.`;
+            addTicketBtn.disabled = false;
+            
+            // Update player count
+            playerCountEl.textContent = gameState.players.length;
+        }
+
+        // Add a ticket for the current player
+        function addTicket() {
+            const name = playerNameInput.value.trim();
+            if (!name) {
+                playerMessageEl.textContent = "Please enter your name first";
+                return;
+            }
+            
+            const player = gameState.players.find(p => p.name === name);
+            if (!player) {
+                playerMessageEl.textContent = "Please join the game first";
+                return;
+            }
+            
+            if (player.tickets.length >= 6) {
+                playerMessageEl.textContent = "You can only have up to 6 tickets";
+                return;
+            }
+            
+            player.tickets.push(generateTicket());
+            renderPlayerTickets(player);
+            playerMessageEl.textContent = `Added ticket ${player.tickets.length}. You now have ${player.tickets.length} tickets.`;
+            
+            // Disable button if max tickets reached
+            if (player.tickets.length >= 6) {
+                addTicketBtn.disabled = true;
+            }
+        }
+
+        // Remove a ticket
+        function removeTicket(player, ticketIndex) {
+            if (player.tickets.length <= 1) {
+                playerMessageEl.textContent = "You must have at least one ticket";
+                return;
+            }
+            
+            player.tickets.splice(ticketIndex, 1);
+            renderPlayerTickets(player);
+            playerMessageEl.textContent = `Ticket removed. You now have ${player.tickets.length} tickets.`;
+            
+            // Enable add ticket button if below max
+            if (player.tickets.length < 6) {
+                addTicketBtn.disabled = false;
+            }
+        }
+
+        // Render all tickets for a player
+        function renderPlayerTickets(player) {
+            ticketsContainerEl.innerHTML = '';
+            
+            player.tickets.forEach((ticket, ticketIndex) => {
+                const ticketEl = document.createElement('div');
+                ticketEl.className = 'ticket';
+                
+                // Ticket header
+                const ticketHeader = document.createElement('div');
+                ticketHeader.className = 'ticket-header';
+                
+                const ticketTitle = document.createElement('div');
+                ticketTitle.className = 'ticket-title';
+                ticketTitle.textContent = `Ticket ${ticketIndex + 1}`;
+                
+                const ticketActions = document.createElement('div');
+                ticketActions.className = 'ticket-actions';
+                
+                const removeBtn = document.createElement('button');
+                removeBtn.className = 'ticket-btn';
+                removeBtn.textContent = 'Remove';
+                removeBtn.addEventListener('click', () => removeTicket(player, ticketIndex));
+                
+                ticketActions.appendChild(removeBtn);
+                ticketHeader.appendChild(ticketTitle);
+                ticketHeader.appendChild(ticketActions);
+                
+                // Ticket board
+                const boardEl = document.createElement('div');
+                boardEl.className = 'tambola-board';
+                
+                // Create column headers
+                for (let i = 1; i <= 9; i++) {
+                    const headerCell = document.createElement('div');
+                    headerCell.className = 'board-cell';
+                    headerCell.textContent = i;
+                    headerCell.style.background = 'rgba(255, 255, 255, 0.2)';
+                    boardEl.appendChild(headerCell);
+                }
+                
+                // Create ticket cells
+                for (let row = 0; row < 3; row++) {
+                    for (let col = 0; col < 9; col++) {
+                        const cell = document.createElement('div');
+                        cell.className = 'board-cell';
+                        
+                        if (ticket[row][col] !== null) {
+                            cell.textContent = ticket[row][col];
+                            
+                            // Mark if number has been called
+                            if (gameState.calledNumbers.includes(ticket[row][col])) {
+                                cell.classList.add('marked');
+                            }
+                            
+                            // Add click event to mark/unmark
+                            cell.addEventListener('click', () => {
+                                if (gameState.calledNumbers.includes(ticket[row][col])) {
+                                    cell.classList.toggle('marked');
+                                }
+                            });
+                        } else {
+                            cell.classList.add('free');
+                            cell.textContent = '';
+                        }
+                        
+                        boardEl.appendChild(cell);
+                    }
+                }
+                
+                ticketEl.appendChild(ticketHeader);
+                ticketEl.appendChild(boardEl);
+                ticketsContainerEl.appendChild(ticketEl);
+            });
+        }
+
+        // Update all player tickets with current called numbers
+        function updateAllPlayerTickets() {
+            const name = playerNameInput.value.trim();
+            if (!name) return;
+            
+            const player = gameState.players.find(p => p.name === name);
+            if (!player) return;
+            
+            renderPlayerTickets(player);
+        }
+
+        // Update player list
+        function updatePlayerList() {
+            playerListEl.innerHTML = '';
+            gameState.players.forEach(player => {
+                const playerItem = document.createElement('div');
+                playerItem.className = 'player-item';
+                
+                const playerInfo = document.createElement('div');
+                playerInfo.textContent = `${player.name} (${player.tickets.length} ticket${player.tickets.length !== 1 ? 's' : ''})`;
+                
+                playerItem.appendChild(playerInfo);
+                
+                if (player.isWinner) {
+                    const winnerBadge = document.createElement('span');
+                    winnerBadge.textContent = 'WINNER!';
+                    winnerBadge.style.color = '#2ecc71';
+                    winnerBadge.style.fontWeight = 'bold';
+                    playerItem.appendChild(winnerBadge);
+                }
+                
+                playerListEl.appendChild(playerItem);
+            });
+            
+            // Update player count
+            playerCountEl.textContent = gameState.players.length;
         }
 
         // Check for winners
@@ -650,22 +783,28 @@
             gameState.players.forEach(player => {
                 if (player.isWinner) return; // Skip if already a winner
                 
-                // Check for winning patterns
-                if (checkFullHouse(player.ticket) || 
-                    checkEarlyFive(player.ticket) || 
-                    checkTopLine(player.ticket)) {
-                    player.isWinner = true;
-                    hasWinner = true;
+                // Check each ticket for winning patterns
+                for (let i = 0; i < player.tickets.length; i++) {
+                    const ticket = player.tickets[i];
                     
-                    // Announce winner
-                    announceWinner(player.name);
-                    
-                    // Update UI
-                    playerMessageEl.textContent = `${player.name} is a WINNER!`;
-                    playerMessageEl.className = 'status-message winning-message';
-                    
-                    hostMessageEl.textContent = `${player.name} has won the game!`;
-                    hostMessageEl.className = 'status-message winning-message';
+                    if (checkFullHouse(ticket) || 
+                        checkEarlyFive(ticket) || 
+                        checkTopLine(ticket)) {
+                        player.isWinner = true;
+                        hasWinner = true;
+                        
+                        // Announce winner
+                        announceWinner(player.name, i + 1);
+                        
+                        // Update UI
+                        playerMessageEl.textContent = `${player.name} is a WINNER with Ticket ${i + 1}!`;
+                        playerMessageEl.className = 'status-message winning-message';
+                        
+                        hostMessageEl.textContent = `${player.name} has won the game with Ticket ${i + 1}!`;
+                        hostMessageEl.className = 'status-message winning-message';
+                        
+                        break; // No need to check other tickets
+                    }
                 }
             });
             
@@ -729,11 +868,11 @@
         }
 
         // Announce winner with voice
-        function announceWinner(playerName) {
+        function announceWinner(playerName, ticketNumber) {
             if (!gameState.speechEnabled) return;
             
             const speech = new SpeechSynthesisUtterance();
-            speech.text = `We have a winner! Congratulations ${playerName}!`;
+            speech.text = `We have a winner! Congratulations ${playerName} with Ticket ${ticketNumber}!`;
             speech.volume = 1;
             speech.rate = 0.9;
             speech.pitch = 1;
