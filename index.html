@@ -1,850 +1,145 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Online Tambola Game</title>
-    <style>
-        /* Global Styles */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        
-        body {
-            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
-            color: white;
-            min-height: 100vh;
-            padding: 20px;
-        }
-        
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        
-        header {
-            text-align: center;
-            margin-bottom: 30px;
-            padding: 20px;
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-        }
-        
-        h1 {
-            font-size: 2.5rem;
-            margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-        }
-        
-        h2 {
-            font-size: 1.8rem;
-            margin-bottom: 15px;
-            color: #ffcc00;
-        }
-        
-        p {
-            font-size: 1.1rem;
-            line-height: 1.6;
-            margin-bottom: 15px;
-        }
-        
-        .btn {
-            padding: 12px 25px;
-            background: #ff5722;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 1rem;
-            font-weight: bold;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-        
-        .btn:hover {
-            background: #ff7043;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 8px rgba(0, 0, 0, 0.2);
-        }
-        
-        .btn-secondary {
-            background: #2196f3;
-        }
-        
-        .btn-secondary:hover {
-            background: #42a5f5;
-        }
-        
-        .card {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-            backdrop-filter: blur(10px);
-        }
-        
-        /* Navigation Styles */
-        .nav-tabs {
-            display: flex;
-            justify-content: center;
-            margin-bottom: 30px;
-        }
-        
-        .nav-tab {
-            padding: 12px 30px;
-            background: rgba(255, 255, 255, 0.2);
-            margin: 0 10px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: all 0.3s ease;
-        }
-        
-        .nav-tab.active {
-            background: #ff5722;
-        }
-        
-        .nav-tab:hover {
-            background: rgba(255, 255, 255, 0.3);
-        }
-        
-        .nav-tab.active:hover {
-            background: #ff5722;
-        }
-        
-        /* Page Styles */
-        .page {
-            display: none;
-        }
-        
-        .page.active {
-            display: block;
-        }
-        
-        /* Host Panel Styles */
-        .game-setup {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            margin-bottom: 20px;
-        }
-        
-        .form-group {
-            margin-bottom: 15px;
-        }
-        
-        label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-        }
-        
-        input, select {
-            width: 100%;
-            padding: 10px;
-            border-radius: 5px;
-            border: 1px solid #ccc;
-            font-size: 1rem;
-        }
-        
-        .number-display {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin: 20px 0;
-            justify-content: center;
-        }
-        
-        .number {
-            width: 60px;
-            height: 60px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: #2196f3;
-            border-radius: 50%;
-            font-size: 1.5rem;
-            font-weight: bold;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-        
-        .number.current {
-            background: #ff5722;
-            transform: scale(1.1);
-            box-shadow: 0 0 20px #ff5722;
-        }
-        
-        .control-panel {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            margin: 20px 0;
-        }
-        
-        .players-list {
-            margin-top: 20px;
-        }
-        
-        .player-item {
-            padding: 10px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 5px;
-            margin-bottom: 10px;
-            display: flex;
-            justify-content: space-between;
-        }
-        
-        /* Player Panel Styles */
-        .player-form {
-            max-width: 500px;
-            margin: 0 auto 30px;
-        }
-        
-        .ticket {
-            display: grid;
-            grid-template-columns: repeat(9, 1fr);
-            gap: 5px;
-            max-width: 600px;
-            margin: 0 auto 30px;
-            background: white;
-            color: #333;
-            padding: 15px;
-            border-radius: 10px;
-            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
-        }
-        
-        .ticket-cell {
-            aspect-ratio: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border: 1px solid #ccc;
-            font-weight: bold;
-            border-radius: 3px;
-            position: relative;
-        }
-        
-        .ticket-cell.marked {
-            background: #4caf50;
-            color: white;
-        }
-        
-        .ticket-cell.marked::after {
-            content: "✓";
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 1.5rem;
-        }
-        
-        .ticket-header {
-            text-align: center;
-            font-weight: bold;
-            padding: 5px;
-            border-bottom: 2px solid #ccc;
-        }
-        
-        .called-numbers {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            justify-content: center;
-            margin: 20px 0;
-            max-height: 200px;
-            overflow-y: auto;
-            padding: 10px;
-            background: rgba(0, 0, 0, 0.2);
-            border-radius: 10px;
-        }
-        
-        /* Game Status */
-        .game-status {
-            text-align: center;
-            padding: 10px;
-            margin: 10px 0;
-            border-radius: 5px;
-            font-weight: bold;
-        }
-        
-        .status-waiting {
-            background: #ff9800;
-        }
-        
-        .status-active {
-            background: #4caf50;
-        }
-        
-        .status-finished {
-            background: #f44336;
-        }
-        
-        /* Responsive Design */
-        @media (max-width: 768px) {
-            .game-setup {
-                grid-template-columns: 1fr;
-            }
-            
-            .ticket {
-                grid-template-columns: repeat(5, 1fr);
-            }
-            
-            .control-panel {
-                flex-direction: column;
-            }
-            
-            .btn {
-                width: 100%;
-                margin-bottom: 10px;
-            }
-        }
-    </style>
+  <title>Number Caller With Voice (7s Gap)</title>
+  <style>
+    body {
+      text-align: center;   /* Center everything */
+      font-family: Arial, sans-serif;
+    }
+
+    button { 
+      padding: 10px 20px; 
+      margin: 10px; 
+    }
+
+    #current { 
+      font-size: 60px; 
+      margin-top: 20px; 
+      font-weight: bold; 
+      display: block;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    /* Number Board Style */
+    #board {
+      display: grid;
+      grid-template-columns: repeat(10, 1fr);
+      gap: 5px;
+      width: 80%;
+      margin: 20px auto;
+    }
+
+    .cell {
+      padding: 10px;
+      background: #eee;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      font-size: 20px;
+      text-align: center;
+      font-weight: bold;
+    }
+
+    .called {
+      background: #4CAF50;
+      color: white;
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>Online Tambola Game</h1>
-            <p>Play the classic Indian Bingo game online with friends and family!</p>
-        </header>
-        
-        <div class="nav-tabs">
-            <div class="nav-tab active" data-page="host">Host Panel</div>
-            <div class="nav-tab" data-page="player">Player Panel</div>
-        </div>
-        
-        <!-- Host Panel -->
-        <div id="host" class="page active">
-            <div class="card">
-                <h2>Game Control Panel</h2>
-                <p>Set up your Tambola game and manage the number calling.</p>
-                
-                <div class="game-setup">
-                    <div>
-                        <div class="form-group">
-                            <label for="gameDate">Game Date</label>
-                            <input type="date" id="gameDate">
-                        </div>
-                        <div class="form-group">
-                            <label for="gameTime">Game Time</label>
-                            <input type="time" id="gameTime">
-                        </div>
-                        <button id="setGameBtn" class="btn">Set Game</button>
-                    </div>
-                    
-                    <div>
-                        <div class="game-status status-waiting" id="gameStatus">
-                            Game not started
-                        </div>
-                        <div class="form-group">
-                            <label for="gameCode">Game Code</label>
-                            <input type="text" id="gameCode" readonly value="TMB-001">
-                        </div>
-                        <p>Share this code with players to join your game.</p>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="card">
-                <h2>Number Calling</h2>
-                <p>Call numbers one by one during the game.</p>
-                
-                <div class="control-panel">
-                    <button id="startGameBtn" class="btn" disabled>Start Game</button>
-                    <button id="nextNumberBtn" class="btn" disabled>Call Next Number</button>
-                    <button id="resetGameBtn" class="btn btn-secondary">Reset Game</button>
-                </div>
-                
-                <div class="number-display" id="numberDisplay">
-                    <!-- Numbers will be displayed here -->
-                </div>
-                
-                <h3>Called Numbers</h3>
-                <div class="called-numbers" id="calledNumbers">
-                    <!-- Called numbers will appear here -->
-                </div>
-            </div>
-            
-            <div class="card">
-                <h2>Players</h2>
-                <div class="players-list" id="playersList">
-                    <!-- Player list will appear here -->
-                </div>
-            </div>
-        </div>
-        
-        <!-- Player Panel -->
-        <div id="player" class="page">
-            <div class="card">
-                <h2>Join Tambola Game</h2>
-                <p>Enter the game code provided by the host and your name to join the game.</p>
-                
-                <div class="player-form">
-                    <div class="form-group">
-                        <label for="playerGameCode">Game Code</label>
-                        <input type="text" id="playerGameCode" placeholder="Enter game code">
-                    </div>
-                    <div class="form-group">
-                        <label for="playerName">Your Name</label>
-                        <input type="text" id="playerName" placeholder="Enter your name">
-                    </div>
-                    <button id="joinGameBtn" class="btn">Join Game</button>
-                </div>
-                
-                <div class="game-status status-waiting" id="playerGameStatus">
-                    Waiting to join game
-                </div>
-            </div>
-            
-            <div class="card">
-                <h2>Your Tambola Ticket</h2>
-                <div class="ticket" id="ticket">
-                    <!-- Ticket will be generated here -->
-                </div>
-                
-                <div class="control-panel">
-                    <button id="claimWinBtn" class="btn" disabled>Claim Win</button>
-                </div>
-            </div>
-            
-            <div class="card">
-                <h2>Called Numbers</h2>
-                <div class="called-numbers" id="playerCalledNumbers">
-                    <!-- Called numbers will appear here -->
-                </div>
-            </div>
-        </div>
-    </div>
 
-    <script>
-        // Game state
-        const gameState = {
-            gameCode: 'TMB-001',
-            gameDate: '',
-            gameTime: '',
-            status: 'waiting', // waiting, active, finished
-            calledNumbers: [],
-            players: [],
-            currentPlayerId: null,
-            playerTicket: []
-        };
+<h2>Tambola Number Caller</h2>
+<div id="current">--</div>
 
-        // DOM Elements
-        const hostPage = document.getElementById('host');
-        const playerPage = document.getElementById('player');
-        const navTabs = document.querySelectorAll('.nav-tab');
-        const gameStatus = document.getElementById('gameStatus');
-        const playerGameStatus = document.getElementById('playerGameStatus');
-        const numberDisplay = document.getElementById('numberDisplay');
-        const calledNumbers = document.getElementById('calledNumbers');
-        const playerCalledNumbers = document.getElementById('playerCalledNumbers');
-        const playersList = document.getElementById('playersList');
-        const ticket = document.getElementById('ticket');
-        
-        // Buttons
-        const setGameBtn = document.getElementById('setGameBtn');
-        const startGameBtn = document.getElementById('startGameBtn');
-        const nextNumberBtn = document.getElementById('nextNumberBtn');
-        const resetGameBtn = document.getElementById('resetGameBtn');
-        const joinGameBtn = document.getElementById('joinGameBtn');
-        const claimWinBtn = document.getElementById('claimWinBtn');
-        
-        // Inputs
-        const gameDateInput = document.getElementById('gameDate');
-        const gameTimeInput = document.getElementById('gameTime');
-        const gameCodeInput = document.getElementById('gameCode');
-        const playerGameCodeInput = document.getElementById('playerGameCode');
-        const playerNameInput = document.getElementById('playerName');
-        
-        // Initialize with today's date and current time
-        const today = new Date();
-        gameDateInput.value = today.toISOString().split('T')[0];
-        
-        const now = new Date();
-        const hours = now.getHours().toString().padStart(2, '0');
-        const minutes = now.getMinutes().toString().padStart(2, '0');
-        gameTimeInput.value = `${hours}:${minutes}`;
-        
-        // Navigation
-        navTabs.forEach(tab => {
-            tab.addEventListener('click', () => {
-                const pageId = tab.getAttribute('data-page');
-                
-                // Update active tab
-                navTabs.forEach(t => t.classList.remove('active'));
-                tab.classList.add('active');
-                
-                // Show active page
-                document.querySelectorAll('.page').forEach(page => {
-                    page.classList.remove('active');
-                });
-                document.getElementById(pageId).classList.add('active');
-                
-                // If switching to player page, generate a ticket
-                if (pageId === 'player') {
-                    generateTicket();
-                }
-            });
-        });
-        
-        // Host Functions
-        setGameBtn.addEventListener('click', () => {
-            if (gameDateInput.value && gameTimeInput.value) {
-                gameState.gameDate = gameDateInput.value;
-                gameState.gameTime = gameTimeInput.value;
-                
-                gameStatus.textContent = `Game set for ${formatDate(gameState.gameDate)} at ${gameState.gameTime}`;
-                gameStatus.className = 'game-status status-waiting';
-                
-                startGameBtn.disabled = false;
-                
-                alert('Game settings saved! Players can now join using the game code.');
-            } else {
-                alert('Please set both date and time for the game.');
-            }
-        });
-        
-        startGameBtn.addEventListener('click', () => {
-            if (gameState.players.length === 0) {
-                alert('No players have joined yet. Wait for players to join before starting.');
-                return;
-            }
-            
-            gameState.status = 'active';
-            gameStatus.textContent = 'Game in progress';
-            gameStatus.className = 'game-status status-active';
-            
-            nextNumberBtn.disabled = false;
-            startGameBtn.disabled = true;
-            
-            // Update player status
-            if (gameState.currentPlayerId) {
-                playerGameStatus.textContent = 'Game in progress - Mark your numbers!';
-                playerGameStatus.className = 'game-status status-active';
-            }
-            
-            alert('Game started! Begin calling numbers.');
-        });
-        
-        nextNumberBtn.addEventListener('click', () => {
-            if (gameState.calledNumbers.length >= 90) {
-                alert('All numbers have been called!');
-                return;
-            }
-            
-            let nextNumber;
-            do {
-                nextNumber = Math.floor(Math.random() * 90) + 1;
-            } while (gameState.calledNumbers.includes(nextNumber));
-            
-            gameState.calledNumbers.push(nextNumber);
-            
-            // Update displays
-            updateNumberDisplay();
-            updateCalledNumbers();
-            
-            // Check if player has this number on their ticket
-            if (gameState.currentPlayerId) {
-                checkPlayerTicket(nextNumber);
-            }
-            
-            // Auto-claim if player has a winning ticket
-            if (gameState.currentPlayerId && checkForWin()) {
-                setTimeout(() => {
-                    claimWin();
-                }, 1000);
-            }
-        });
-        
-        resetGameBtn.addEventListener('click', () => {
-            if (confirm('Are you sure you want to reset the game? All progress will be lost.')) {
-                gameState.calledNumbers = [];
-                gameState.status = 'waiting';
-                
-                gameStatus.textContent = 'Game not started';
-                gameStatus.className = 'game-status status-waiting';
-                
-                startGameBtn.disabled = true;
-                nextNumberBtn.disabled = true;
-                
-                numberDisplay.innerHTML = '';
-                calledNumbers.innerHTML = '';
-                
-                // Reset player state
-                if (gameState.currentPlayerId) {
-                    playerGameStatus.textContent = 'Game reset by host';
-                    playerGameStatus.className = 'game-status status-waiting';
-                    claimWinBtn.disabled = true;
-                }
-                
-                alert('Game has been reset.');
-            }
-        });
-        
-        // Player Functions
-        joinGameBtn.addEventListener('click', () => {
-            const code = playerGameCodeInput.value.trim();
-            const name = playerNameInput.value.trim();
-            
-            if (!code || !name) {
-                alert('Please enter both game code and your name.');
-                return;
-            }
-            
-            if (code !== gameState.gameCode) {
-                alert('Invalid game code. Please check with the host.');
-                return;
-            }
-            
-            // Generate a player ID
-            const playerId = 'player-' + Date.now();
-            gameState.currentPlayerId = playerId;
-            
-            // Add player to the list (if not already there)
-            if (!gameState.players.find(p => p.id === playerId)) {
-                gameState.players.push({
-                    id: playerId,
-                    name: name,
-                    joinedAt: new Date()
-                });
-                
-                updatePlayersList();
-            }
-            
-            playerGameStatus.textContent = `Joined game as ${name}. Waiting for host to start.`;
-            playerGameStatus.className = 'game-status status-waiting';
-            
-            joinGameBtn.disabled = true;
-            playerGameCodeInput.disabled = true;
-            playerNameInput.disabled = true;
-            
-            // Generate a new ticket for the player
-            generateTicket();
-            
-            // Update called numbers display
-            updatePlayerCalledNumbers();
-            
-            alert(`Successfully joined the game as ${name}!`);
-        });
-        
-        claimWinBtn.addEventListener('click', () => {
-            claimWin();
-        });
-        
-        // Helper Functions
-        function formatDate(dateString) {
-            const options = { year: 'numeric', month: 'long', day: 'numeric' };
-            return new Date(dateString).toLocaleDateString(undefined, options);
-        }
-        
-        function updateNumberDisplay() {
-            if (gameState.calledNumbers.length === 0) {
-                numberDisplay.innerHTML = '<p>No numbers called yet.</p>';
-                return;
-            }
-            
-            const currentNumber = gameState.calledNumbers[gameState.calledNumbers.length - 1];
-            numberDisplay.innerHTML = `
-                <div class="number current">${currentNumber}</div>
-            `;
-        }
-        
-        function updateCalledNumbers() {
-            calledNumbers.innerHTML = '';
-            playerCalledNumbers.innerHTML = '';
-            
-            gameState.calledNumbers.forEach(num => {
-                const numberElement = document.createElement('div');
-                numberElement.className = 'number';
-                numberElement.textContent = num;
-                calledNumbers.appendChild(numberElement);
-                
-                const playerNumberElement = document.createElement('div');
-                playerNumberElement.className = 'number';
-                playerNumberElement.textContent = num;
-                playerCalledNumbers.appendChild(playerNumberElement);
-            });
-        }
-        
-        function updatePlayerCalledNumbers() {
-            playerCalledNumbers.innerHTML = '';
-            
-            gameState.calledNumbers.forEach(num => {
-                const numberElement = document.createElement('div');
-                numberElement.className = 'number';
-                numberElement.textContent = num;
-                playerCalledNumbers.appendChild(numberElement);
-            });
-        }
-        
-        function updatePlayersList() {
-            playersList.innerHTML = '';
-            
-            if (gameState.players.length === 0) {
-                playersList.innerHTML = '<p>No players have joined yet.</p>';
-                return;
-            }
-            
-            gameState.players.forEach(player => {
-                const playerElement = document.createElement('div');
-                playerElement.className = 'player-item';
-                playerElement.innerHTML = `
-                    <span>${player.name}</span>
-                    <span>Joined: ${player.joinedAt.toLocaleTimeString()}</span>
-                `;
-                playersList.appendChild(playerElement);
-            });
-        }
-        
-        function generateTicket() {
-            // Clear previous ticket
-            ticket.innerHTML = '';
-            
-            // Create header row
-            for (let i = 1; i <= 9; i++) {
-                const headerCell = document.createElement('div');
-                headerCell.className = 'ticket-header';
-                headerCell.textContent = i;
-                ticket.appendChild(headerCell);
-            }
-            
-            // Generate ticket numbers
-            const ticketNumbers = [];
-            for (let col = 0; col < 9; col++) {
-                const colNumbers = [];
-                const min = col * 10 + 1;
-                const max = col === 8 ? 90 : (col + 1) * 10;
-                
-                // Each column should have at least 1 number, maximum 3
-                const count = Math.floor(Math.random() * 2) + 1; // 1 or 2 numbers per column
-                
-                for (let i = 0; i < count; i++) {
-                    let num;
-                    do {
-                        num = Math.floor(Math.random() * (max - min + 1)) + min;
-                    } while (colNumbers.includes(num));
-                    
-                    colNumbers.push(num);
-                }
-                
-                colNumbers.sort((a, b) => a - b);
-                ticketNumbers.push(colNumbers);
-            }
-            
-            // Fill the ticket (3 rows)
-            for (let row = 0; row < 3; row++) {
-                for (let col = 0; col < 9; col++) {
-                    const cell = document.createElement('div');
-                    cell.className = 'ticket-cell';
-                    
-                    if (row < ticketNumbers[col].length) {
-                        cell.textContent = ticketNumbers[col][row];
-                        cell.dataset.number = ticketNumbers[col][row];
-                        
-                        // Add click event to mark numbers
-                        cell.addEventListener('click', () => {
-                            if (gameState.status === 'active') {
-                                cell.classList.toggle('marked');
-                                checkForWin();
-                            } else {
-                                alert('Game has not started yet.');
-                            }
-                        });
-                    }
-                    
-                    ticket.appendChild(cell);
-                }
-            }
-            
-            // Save ticket to game state
-            gameState.playerTicket = [];
-            document.querySelectorAll('.ticket-cell[data-number]').forEach(cell => {
-                gameState.playerTicket.push({
-                    number: parseInt(cell.dataset.number),
-                    marked: false
-                });
-            });
-        }
-        
-        function checkPlayerTicket(calledNumber) {
-            const cells = document.querySelectorAll('.ticket-cell[data-number]');
-            cells.forEach(cell => {
-                if (parseInt(cell.dataset.number) === calledNumber) {
-                    cell.classList.add('marked');
-                    
-                    // Update game state
-                    const ticketItem = gameState.playerTicket.find(item => item.number === calledNumber);
-                    if (ticketItem) {
-                        ticketItem.marked = true;
-                    }
-                }
-            });
-        }
-        
-        function checkForWin() {
-            // Check for horizontal lines
-            const rows = [];
-            for (let i = 0; i < 3; i++) {
-                const rowCells = [];
-                for (let j = 0; j < 9; j++) {
-                    const index = i * 9 + j;
-                    const cell = ticket.children[index];
-                    if (cell.classList.contains('marked')) {
-                        rowCells.push(true);
-                    } else if (cell.textContent) {
-                        rowCells.push(false);
-                    }
-                }
-                rows.push(rowCells);
-            }
-            
-            // Check if any row is complete
-            for (let i = 0; i < 3; i++) {
-                if (rows[i].every(cell => cell === true)) {
-                    return true;
-                }
-            }
-            
-            // Check for full house (all numbers marked)
-            const allMarked = Array.from(document.querySelectorAll('.ticket-cell[data-number]'))
-                .every(cell => cell.classList.contains('marked'));
-            
-            if (allMarked) {
-                return true;
-            }
-            
-            return false;
-        }
-        
-        function claimWin() {
-            if (checkForWin()) {
-                const playerName = playerNameInput.value || 'Player';
-                alert(`Congratulations ${playerName}! You've won the game!`);
-                
-                // Notify host
-                gameStatus.textContent = `${playerName} has won the game!`;
-                gameStatus.className = 'game-status status-finished';
-                
-                playerGameStatus.textContent = 'You won! Congratulations!';
-                playerGameStatus.className = 'game-status status-finished';
-                
-                gameState.status = 'finished';
-                nextNumberBtn.disabled = true;
-                claimWinBtn.disabled = true;
-            } else {
-                alert('You do not have a winning ticket yet. Keep playing!');
-            }
-        }
-        
-        // Initialize
-        updateNumberDisplay();
-        updateCalledNumbers();
-        updatePlayersList();
-    </script>
+<button onclick="startCalling()">Start</button>
+<button onclick="pauseCalling()">Pause</button>
+<button onclick="resumeCalling()">Resume</button>
+<button onclick="claim()">Claim</button>
+
+<!-- Number Board -->
+<div id="board"></div>
+
+<script>
+let numbers = [];
+let interval;
+let paused = false;
+
+// Build number board 1–90
+function createBoard() {
+  let board = document.getElementById("board");
+  board.innerHTML = "";
+  for (let i = 1; i <= 90; i++) {
+    let cell = document.createElement("div");
+    cell.className = "cell";
+    cell.id = "num" + i;
+    cell.innerHTML = i;
+    board.appendChild(cell);
+  }
+}
+createBoard();
+
+// Convert number to spoken English words
+function numberToWords(n) {
+  const words = [
+    "", "One","Two","Three","Four","Five","Six","Seven","Eight","Nine","Ten",
+    "Eleven","Twelve","Thirteen","Fourteen","Fifteen","Sixteen","Seventeen",
+    "Eighteen","Nineteen"
+  ];
+  const tens = ["", "", "Twenty","Thirty","Forty","Fifty","Sixty","Seventy","Eighty","Ninety"];
+
+  if (n < 20) return words[n];
+  if (n < 100) return tens[Math.floor(n / 10)] + (n % 10 === 0 ? "" : " " + words[n % 10]);
+  return n;
+}
+
+// Start calling numbers
+function startCalling() {
+  numbers = [];
+  for (let i = 1; i <= 90; i++) numbers.push(i);
+
+  interval = setInterval(() => {
+    if (!paused) announceNumber();
+  }, 7000); // 7-second gap
+}
+
+// Announce a new number
+function announceNumber() {
+  if (numbers.length === 0) return;
+
+  const index = Math.floor(Math.random() * numbers.length);
+  const number = numbers[index];
+  numbers.splice(index, 1);
+
+  document.getElementById("current").innerHTML = number;
+  speak(numberToWords(number));
+
+  // Highlight called number
+  document.getElementById("num" + number).classList.add("called");
+}
+
+// Speak the number (only the name)
+function speak(text) {
+  let msg = new SpeechSynthesisUtterance();
+  msg.text = text;   
+  msg.rate = 0.9;
+  msg.pitch = 1;
+  msg.volume = 1;
+  window.speechSynthesis.speak(msg);
+}
+
+// Pause
+function pauseCalling() { paused = true; }
+
+// Resume
+function resumeCalling() { paused = false; }
+
+// CLAIM → Auto Pause
+function claim() {
+  paused = true;
+  alert("Claim received! Calling paused.");
+}
+</script>
+
 </body>
 </html>
