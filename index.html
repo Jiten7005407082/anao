@@ -1,143 +1,144 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Number Caller With Voice (7s Gap)</title>
-  <style>
-    body {
-      text-align: center;   /* Center everything */
-      font-family: Arial, sans-serif;
-    }
-
-    button { 
-      padding: 10px 20px; 
-      margin: 10px; 
-    }
-
-    #current { 
-      font-size: 60px; 
-      margin-top: 20px; 
-      font-weight: bold; 
-      display: block;
-      margin-left: auto;
-      margin-right: auto;
-    }
-
-    /* Number Board Style */
-    #board {
-      display: grid;
-      grid-template-columns: repeat(10, 1fr);
-      gap: 5px;
-      width: 80%;
-      margin: 20px auto;
-    }
-
-    .cell {
-      padding: 10px;
-      background: #eee;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-      font-size: 20px;
-      text-align: center;
-      font-weight: bold;
-    }
-
-    .called {
-      background: #4CAF50;
-      color: white;
-    }
-  </style>
+<meta charset="UTF-8">
+<title>Advanced Voice Changer</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+body {
+  font-family: Arial, sans-serif;
+  background: #0a1e44;
+  color: #fff;
+  text-align: center;
+  padding: 30px;
+}
+button, select, input {
+  padding: 10px;
+  margin: 10px;
+  font-size: 16px;
+}
+select {
+  width: 200px;
+}
+</style>
 </head>
 <body>
 
-<h2>Tambola Number Caller</h2>
-<div id="current">--</div>
+<h1>Advanced Voice Changer</h1>
 
-<button onclick="startCalling()">Start</button>
-<button onclick="pauseCalling()">Pause</button>
-<button onclick="resumeCalling()">Resume</button>
-<button onclick="claim()">Claim</button>
+<button onclick="startAudio()">Start Microphone</button>
 
-<!-- Number Board -->
-<div id="board"></div>
+<br>
+
+<label>Voice Effect</label><br>
+<select id="effect" onchange="changeEffect()">
+  <option value="normal">Normal</option>
+  <option value="deep">Deep Voice</option>
+  <option value="high">High Voice</option>
+  <option value="robot">Robot</option>
+  <option value="echo">Echo</option>
+  <option value="alien">Alien</option>
+</select>
+
+<br>
+
+<label>Pitch Control</label><br>
+<input type="range" min="0.5" max="2" step="0.1" value="1" id="pitch">
 
 <script>
-let numbers = [];
-let interval;
-let paused = false;
+let audioContext;
+let source;
+let gainNode;
+let delayNode;
+let oscillator;
+let distortion;
+let pitchNode;
 
-// Build number board 1–90
-function createBoard() {
-  let board = document.getElementById("board");
-  board.innerHTML = "";
-  for (let i = 1; i <= 90; i++) {
-    let cell = document.createElement("div");
-    cell.className = "cell";
-    cell.id = "num" + i;
-    cell.innerHTML = i;
-    board.appendChild(cell);
-  }
-}
-createBoard();
+async function startAudio() {
+  audioContext = new (window.AudioContext || window.webkitAudioContext)();
 
-// Convert number to spoken English words
-function numberToWords(n) {
-  const words = [
-    "", "One","Two","Three","Four","Five","Six","Seven","Eight","Nine","Ten",
-    "Eleven","Twelve","Thirteen","Fourteen","Fifteen","Sixteen","Seventeen",
-    "Eighteen","Nineteen"
-  ];
-  const tens = ["", "", "Twenty","Thirty","Forty","Fifty","Sixty","Seventy","Eighty","Ninety"];
+  const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+  source = audioContext.createMediaStreamSource(stream);
 
-  if (n < 20) return words[n];
-  if (n < 100) return tens[Math.floor(n / 10)] + (n % 10 === 0 ? "" : " " + words[n % 10]);
-  return n;
+  gainNode = audioContext.createGain();
+  delayNode = audioContext.createDelay();
+  pitchNode = audioContext.createPlaybackRate();
+  distortion = audioContext.createWaveShaper();
+
+  pitchNode.playbackRate.value = document.getElementById("pitch").value;
+
+  document.getElementById("pitch").oninput = function () {
+    pitchNode.playbackRate.value = this.value;
+  };
+
+  connectNormal();
 }
 
-// Start calling numbers
-function startCalling() {
-  numbers = [];
-  for (let i = 1; i <= 90; i++) numbers.push(i);
-
-  interval = setInterval(() => {
-    if (!paused) announceNumber();
-  }, 7000); // 7-second gap
+function clearConnections() {
+  source.disconnect();
+  gainNode.disconnect();
+  delayNode.disconnect();
+  if (oscillator) oscillator.disconnect();
 }
 
-// Announce a new number
-function announceNumber() {
-  if (numbers.length === 0) return;
-
-  const index = Math.floor(Math.random() * numbers.length);
-  const number = numbers[index];
-  numbers.splice(index, 1);
-
-  document.getElementById("current").innerHTML = number;
-  speak(numberToWords(number));
-
-  // Highlight called number
-  document.getElementById("num" + number).classList.add("called");
+function connectNormal() {
+  clearConnections();
+  source.connect(pitchNode).connect(audioContext.destination);
 }
 
-// Speak the number (only the name)
-function speak(text) {
-  let msg = new SpeechSynthesisUtterance();
-  msg.text = text;   
-  msg.rate = 0.9;
-  msg.pitch = 1;
-  msg.volume = 1;
-  window.speechSynthesis.speak(msg);
+function connectDeep() {
+  clearConnections();
+  pitchNode.playbackRate.value = 0.7;
+  source.connect(pitchNode).connect(audioContext.destination);
 }
 
-// Pause
-function pauseCalling() { paused = true; }
+function connectHigh() {
+  clearConnections();
+  pitchNode.playbackRate.value = 1.5;
+  source.connect(pitchNode).connect(audioContext.destination);
+}
 
-// Resume
-function resumeCalling() { paused = false; }
+function connectEcho() {
+  clearConnections();
+  delayNode.delayTime.value = 0.25;
+  gainNode.gain.value = 0.6;
 
-// CLAIM → Auto Pause
-function claim() {
-  paused = true;
-  alert("Claim received! Calling paused.");
+  source.connect(delayNode);
+  delayNode.connect(gainNode);
+  gainNode.connect(audioContext.destination);
+}
+
+function connectRobot() {
+  clearConnections();
+
+  oscillator = audioContext.createOscillator();
+  oscillator.frequency.value = 30;
+  oscillator.start();
+
+  source.connect(distortion);
+  distortion.connect(audioContext.destination);
+}
+
+function connectAlien() {
+  clearConnections();
+
+  oscillator = audioContext.createOscillator();
+  oscillator.frequency.value = 15;
+  oscillator.start();
+
+  source.connect(oscillator.frequency);
+  source.connect(audioContext.destination);
+}
+
+function changeEffect() {
+  const effect = document.getElementById("effect").value;
+
+  if (effect === "normal") connectNormal();
+  if (effect === "deep") connectDeep();
+  if (effect === "high") connectHigh();
+  if (effect === "robot") connectRobot();
+  if (effect === "echo") connectEcho();
+  if (effect === "alien") connectAlien();
 }
 </script>
 
